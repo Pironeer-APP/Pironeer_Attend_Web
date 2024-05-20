@@ -10,21 +10,24 @@ exports.createSession = async (req, res) => {
       return res.status(400).send({ message: "이름과 날짜는 필수입니다" });
     }
 
+    // 1. 세션 생성 쿼리
     const session = new Session({ name, date });
-    await session.save();
+    await session.save(); // 1 DB Write
 
-    const users = await User.find(); // 유저 다가져오기
+    // 2. 모든 유저를 가져오는 쿼리
+    const users = await User.find(); // 1 DB Read
     if (!users.length) {
       return res.status(400).send({ message: "사용자가 없습니다" });
     }
 
     // 모든 유저를 map을 통해 각 유저를 id로 가지는 출석정보 생성 (.save()가 프로미스를 반환)
     // 세션 이후에 만들어진 유저는 출석 정보가 없다고 뜸
+    // 3. 출석 정보를 생성하는 쿼리 (유저 수 만큼 발생)
     const attendPromises = users.map(user => new Attend({
       user: user._id,
       session: session._id,
       attendList: []
-    }).save());
+    }).save()); // N DB Writes (유저 수 N 만큼)
 
     await Promise.all(attendPromises); // 출석정보가 다 save()될때까지 기다림
 
@@ -38,7 +41,8 @@ exports.startAttendCheckById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const session = await Session.findById(id);
+    // 1. 세션을 찾는 쿼리
+    const session = await Session.findById(id); // 1 DB Read
     if (!session) {
       return res.status(404).send({ message: "세션을 찾을 수 없습니다" });
     }
@@ -48,27 +52,32 @@ exports.startAttendCheckById = async (req, res) => {
       return res.status(400).send({ message: "최대 출석 체크 수에 도달했습니다" });
     }
 
-    // 토큰이 있다면 진행중이므로 거부
-    const ongoingCheck = await CheckToken.findOne({ session: session._id });
+    // 2. 진행 중인 출석 체크를 찾는 쿼리
+    const ongoingCheck = await CheckToken.findOne({ session: session._id }); // 1 DB Read
     if (ongoingCheck) {
       return res.status(400).send({ message: "이미 출석 체크가 진행 중입니다." });
     }
 
     // 토큰 생성
+    // 3. 출석 체크 토큰 생성 쿼리
     const token = new CheckToken({ session: session._id, attendIdx: session.checksNum });
-    await token.save();
+    await token.save(); // 1 DB Write
 
     // 세션 만들시 만들었던 모든 유저 출석 정보(Attend)의 출석리스트(attendList)에 push
-    const attends = await Attend.find({ session: session._id });
+    // 4. 모든 출석 정보를 찾는 쿼리
+    const attends = await Attend.find({ session: session._id }); // 1 DB Read
+
+    // 5. 출석 정보를 업데이트하는 쿼리 (출석 정보 수 만큼 발생)
     const updateAttendPromises = attends.map(attend => {
       attend.attendList.push({ attendIdx: session.checksNum, status: false });
-      return attend.save();
+      return attend.save(); // N DB Writes (출석 정보 수 N 만큼)
     });
-    await Promise.all(updateAttendPromises);
+    await Promise.all(updateAttendPromises); // N DB Writes
 
     // 여기까지 왔다면 에러가 없으므로 세션에 출석체크 횟수 증가(참고: MAX_idx = checksNum - 1)
+    // 6. 세션 업데이트 쿼리
     session.checksNum += 1;
-    await session.save();
+    await session.save(); // 1 DB Write
 
     res.status(201).send({ message: "출석 체크가 시작되었습니다", code: token.code, attendIdx: token.attendIdx });
   } catch (error) {
@@ -81,7 +90,8 @@ exports.restartAttendCheckById = async (req, res) => {
   try {
     const { sessionId, attendIdx } = req.params;
 
-    const session = await Session.findById(sessionId);
+    // 1. 세션을 찾는 쿼리
+    const session = await Session.findById(sessionId); // 1 DB Read
     if (!session) {
       return res.status(404).send({ message: "세션을 찾을 수 없습니다" });
     }
@@ -91,25 +101,29 @@ exports.restartAttendCheckById = async (req, res) => {
     }
 
     // 지금 출석체크 중인지
-    const ongoingCheck = await CheckToken.findOne({ session: sessionId });
+    // 2. 진행 중인 출석 체크를 찾는 쿼리
+    const ongoingCheck = await CheckToken.findOne({ session: sessionId }); // 1 DB Read
    
     if (!ongoingCheck) { // 출석이 종료되서 토큰이 만료된경우
-      const attends = await Attend.find({ session: session._id });
+      // 3. 모든 출석 정보를 찾는 쿼리
+      const attends = await Attend.find({ session: session._id }); // 1 DB Read
 
       // 출석 정보 초기화
+      // 4. 출석 정보를 초기화하는 쿼리 (출석 정보 수 만큼 발생)
       const initAttendPromises = attends.map(attend => {
         const attendCheck = attend.attendList.find(item => item.attendIdx === attendIdx);
         if (attendCheck) {
           attendCheck.status = false;
         }
-        return attend.save();
+        return attend.save(); // N DB Writes (출석 정보 수 N 만큼)
       });
 
-      await Promise.all(initAttendPromises);
+      await Promise.all(initAttendPromises); // N DB Writes
 
       // 새 토큰 발행
+      // 5. 새 출석 체크 토큰 생성 쿼리
       const token = new CheckToken({ session: session._id, attendIdx });
-      await token.save();
+      await token.save(); // 1 DB Write
     } 
     else { // 출석 진행 중 일경우
       if(ongoingCheck.attendIdx != attendIdx){ // 인덱스가 다르면 -> 다른 출석체크 진행중
@@ -119,7 +133,7 @@ exports.restartAttendCheckById = async (req, res) => {
       ongoingCheck.code = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
       // 시간 지금으로 
       ongoingCheck.date = Date.now();
-      await ongoingCheck.save(); // 무서운 점 : 10분 되기 0.00001초에 누르면?
+      await ongoingCheck.save(); // 1 DB Write
       token = ongoingCheck;
     }
 
@@ -134,18 +148,21 @@ exports.endAttendCheckById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const session = await Session.findById(id);
+    // 1. 세션을 찾는 쿼리
+    const session = await Session.findById(id); // 1 DB Read
     if (!session) {
       return res.status(404).send({ message: "세션을 찾을 수 없습니다" });
     }
 
-    // 토큰이 잇는지 
-    const ongoingCheck = await CheckToken.findOne({ session: session._id });
+    // 토큰이 있는지
+    // 2. 진행 중인 출석 체크를 찾는 쿼리
+    const ongoingCheck = await CheckToken.findOne({ session: session._id }); // 1 DB Read
     if (!ongoingCheck) {
       return res.status(400).send({ message: "출석 체크가 이미 종료되었습니다" });
     }
 
-    await ongoingCheck.deleteOne();
+    // 3. 출석 체크 토큰 삭제 쿼리
+    await ongoingCheck.deleteOne(); // 1 DB Delete
 
     res.status(201).send({ message: "출석 체크가 성공적으로 종료되었습니다" });
   } catch (error) {
@@ -153,23 +170,25 @@ exports.endAttendCheckById = async (req, res) => {
   }
 };
 
-// 출석체크
 exports.checkAttend = async (req, res) => {
   try {
     const { userId, sessionId } = req.params;
     const { code } = req.body;
 
-    const token = await CheckToken.findOne({ session: sessionId });
+    // 1. 진행 중인 출석 체크를 찾는 쿼리
+    const token = await CheckToken.findOne({ session: sessionId }); // 1 DB Read
     if (!token) {
       return res.status(404).send({ message: "진행 중인 출석 체크를 찾을 수 없습니다" });
     }
 
-    const attend = await Attend.findOne({ user: userId, session: sessionId });
+    // 2. 출석 정보를 찾는 쿼리
+    const attend = await Attend.findOne({ user: userId, session: sessionId }); // 1 DB Read
     if (!attend) {
       return res.status(404).send({ message: "출석 기록을 찾을 수 없습니다" });
     }
 
     // 사용자의 세션에 대한 출석정보 리스트에서 해당 인덱스의 요소.... 미안.
+    // 3. 출석 체크 리스트에서 해당 인덱스를 찾는 로직 (메모리 상에서 처리)
     const attendCheck = attend.attendList.find(item => item.attendIdx === token.attendIdx);
     if (!attendCheck) {
       return res.status(404).send({ message: "이 인덱스에 대한 출석 체크를 찾을 수 없습니다" });
@@ -183,8 +202,9 @@ exports.checkAttend = async (req, res) => {
       return res.status(400).send({ message: "이미 출석 완료되었습니다", attend });
     }
 
+    // 4. 출석 상태 업데이트 쿼리
     attendCheck.status = true;
-    await attend.save();
+    await attend.save(); // 1 DB Write
 
     res.status(201).send({ message: "출석이 확인되었습니다!", attend });
   } catch (error) {
