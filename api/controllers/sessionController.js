@@ -39,9 +39,11 @@ exports.createSession = async (req, res) => {
 exports.startAttendCheckById = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    const isToken = getToken(id); // 있다면 객체 없으면 null
 
-    if (getToken(id)) {
-      return res.status(400).send({ message: "이미 출석 체크가 진행 중입니다." });
+    if((isToken)) {
+      return res.status(400).send({ message: "이미 출석 체크가 진행 중입니다.", code : isToken.code});
     }
 
     const session = await Session.findById(id);
@@ -60,13 +62,13 @@ exports.startAttendCheckById = async (req, res) => {
     }
 
     // 세션에 대한 모든 출석정보 조회
-    const attends = await Attend.find({ session: session._id });
-    if (!attends) {
+    const attend = await Attend.find({ session: session._id });
+    if (!attend) {
       return res.status(400).send({ message: "출석 정보가 없습니다." });
     }
 
     // 출석 정보를 복사한 캐시 생성 -> 캐시에 처리 후 출석 종료 후 일괄로 넘겨짐
-    const cache = createAttendCache(session._id, session.checksNum, attends);
+    const cache = createAttendCache(session._id, session.checksNum, attend);
     
     if (!cache) {
       return res.status(400).send({ message: "출석 체크 생성 중 문제가 발생했습니다." });
@@ -104,7 +106,7 @@ exports.restartAttendCheckById = async (req, res) => {
       const initAttendPromises = attends.map(attend => {
         const attendCheck = attend.attendList.find(item => item.attendIdx === attendIdx);
         if (attendCheck) {
-          attendCheck.status = false;
+          attend.attendCheck.delete();
         }
         return attend.save();
       });
@@ -113,6 +115,7 @@ exports.restartAttendCheckById = async (req, res) => {
 
       // 다시 캐시 생성
       const cache = createAttendCache(session._id, attendIdx, attends);
+
       if (!cache) {
         return res.status(400).send({ message: "출석 체크 생성 중 문제가 발생했습니다." });
       }
@@ -127,7 +130,7 @@ exports.restartAttendCheckById = async (req, res) => {
       // 토큰 재시작
       restartToken(sessionId)
       // attendCache 초기화
-      await initAttendCache(sessionId);
+      initAttendCache(sessionId);
       
       return res.status(201).send({ message: "출석 체크가 재시작되었습니다", code: token.code, attendIdx: token.attendIdx });
     }
@@ -135,7 +138,6 @@ exports.restartAttendCheckById = async (req, res) => {
     res.status(500).send({ message: "출석 체크 재시작 중 오류가 발생했습니다", error });
   }
 };
-
 
 exports.checkAttend = async (req, res) => {
   try {
@@ -151,20 +153,30 @@ exports.checkAttend = async (req, res) => {
       return res.status(400).send({ message: "잘못된 코드입니다" });
     }
 
-    const attends = getAttendCache(sessionId);
+    const attendCache = getAttendCache(sessionId);
 
-    const attend = attends.find(a => a.user.toString() === userId);
+    if (!attendCache) {
+      return res.status(404).send({ message: "출석 정보를 찾을 수 없습니다" });
+    }
+
+    const attend = attendCache.attends.find(a => a.user.toString() === userId);
     if (attend) {
       const attendCheck = attend.attendList.find(item => item.attendIdx === token.attendIdx);
       if (attendCheck) {
+        if (attendCheck.status) {
+          return res.status(400).send({ message: "이미 출석 했습니다." });
+        }
         attendCheck.status = true;
+      } else {
+        return res.status(404).send({ message: "출석 체크 정보를 찾을 수 없습니다." });
       }
     } else {
-      return res.status(404).send({ message: "출석 정보를 찾을 수 없습니다" });
+      return res.status(404).send({ message: "사용자 출석 정보를 찾을 수 없습니다." });
     }
 
     res.status(201).send({ message: "출석이 확인되었습니다!" });
   } catch (error) {
+    console.error("출석 확인 중 오류가 발생했습니다", error);
     res.status(500).send({ message: "출석 확인 중 오류가 발생했습니다", error });
   }
 };

@@ -17,7 +17,12 @@ function createAttendCache(sessionId, attendIdx, attends) {
   attendCache.attends = [];
 
   attends.forEach(attend => {
-    attend.attendList.push({ attendIdx, status: false });
+    let attendAtIdx = attend.attendList.find(item => item.attendIdx === attendIdx);
+    if (!attendAtIdx) {
+      attendAtIdx = { attendIdx, status: false };
+      attend.attendList.push(attendAtIdx); // 세이브를 하지 않으므로 디비에는 영향 없음
+    }
+    attendAtIdx.status = true;
     attendCache.attends.push(attend);
   });
 
@@ -25,9 +30,9 @@ function createAttendCache(sessionId, attendIdx, attends) {
 }
 
 // 캐시 초기화
-async function initAttendCache(sessionId, attendIdx) {
+function initAttendCache(sessionId, attendIdx) {
   const cache = attendCache;
-  if (cache.sessionId === sessionId) {
+  if (cache.sessionId == sessionId) {
     for (const attend of cache.attends) {
       const attendCheck = attend.attendList.find(item => item.attendIdx === attendIdx);
       if (attendCheck) {
@@ -40,47 +45,29 @@ async function initAttendCache(sessionId, attendIdx) {
 }
 
 function getAttendCache(sessionId) {
-  return attendCache.sessionId === sessionId ? attendCache.attends : null;
+  return attendCache.sessionId == sessionId ? attendCache : null;
 }
 
 // 캐시에 있는 정보 모두 데이터베이스에 넘기고 캐시 삭제
 async function flushAttendCache(sessionId) {
+  
   const cache = attendCache;
-  if (cache.sessionId === sessionId) {
-    const updateAttendPromises = cache.attends.map(async attend => {
-      // 캐시 내의 출석 하나를 가져와 저장
-      const dbAttend = await Attend.findOne({ user: attend.user, session: sessionId });
-      if (dbAttend) {
-        const attendCheck = dbAttend.attendList.find(item => item.attendIdx === cache.attendIdx);
-        if (attendCheck) {
-          attendCheck.status = attend.status;
-        } else {
-          dbAttend.attendList.push({ attendIdx: cache.attendIdx, status: attend.status });
-        }
-        await dbAttend.save();
+  if (cache.sessionId == sessionId) {
+    const bulkOps = cache.attends.map(attend => ({
+      updateOne: {
+        filter: { user: attend.user, session: sessionId },
+        update: {
+          $set: {
+            attendList: attend.attendList
+          }
+        },
+        upsert: true
       }
-    });
+    }));
 
-    await Promise.all(updateAttendPromises);
-
-    // if (cache.sessionId === sessionId) {
-    // const updates = cache.attends.map(attend => {
-    //   return {
-    //     updateOne: {
-    //       filter: { user: attend.user, session: sessionId },
-    //       update: {
-    //         $set: {
-    //           'attendList.$[elem].status': attend.attendList.find(item => item.attendIdx === cache.attendIdx).status
-    //         }
-    //       },
-    //       arrayFilters: [{ 'elem.attendIdx': cache.attendIdx }]
-    //     }
-    //   };
-    // });
-
-    // if (updates.length > 0) {
-    //   await Attend.bulkWrite(updates);
-    // }
+    if (bulkOps.length > 0) {
+      await Attend.bulkWrite(bulkOps);
+    }
 
     cache.sessionId = null;
     cache.attendIdx = null;

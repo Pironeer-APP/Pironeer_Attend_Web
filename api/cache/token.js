@@ -1,4 +1,4 @@
-const { flushAttendCacheList } = require('./attendCaches');
+const { flushAttendCache } = require('./attendCaches');
 
 const tokenCache = {
   sessionId: null,
@@ -10,7 +10,7 @@ const TTL = 600000; // 10분 (600,000 밀리초)
 
 // Token 삭제 함수
 async function deleteToken(sessionId) {
-  await flushAttendCacheList(sessionId);
+  await flushAttendCache(sessionId);
   tokenCache.sessionId = null;
   tokenCache.attendIdx = null;
   tokenCache.expireAt = null;
@@ -21,7 +21,7 @@ async function deleteToken(sessionId) {
 function createToken(sessionId, attendIdx) {
   if (tokenCache.sessionId) {
     console.log(`이미 출석 체크 중`);
-    return false; // 이미 존재하는 경우 false 반환
+    return null; // 이미 존재하는 경우 false 반환
   }
 
   const expireAt = Date.now() + TTL;
@@ -33,7 +33,7 @@ function createToken(sessionId, attendIdx) {
 
   // 시간 지나면 사라짐
   setTimeout(async () => {
-    if (tokenCache.sessionId === sessionId && tokenCache.expireAt <= Date.now()) {
+    if (tokenCache.sessionId == sessionId && tokenCache.expireAt <= Date.now()) {
       await deleteToken(sessionId);
     }
   }, TTL);
@@ -57,10 +57,9 @@ function restartToken(sessionId) {
 
 // Token 조회 함수
 function getToken(sessionId) {
-  if (tokenCache.sessionId === sessionId && tokenCache.expireAt > Date.now()) {
+  if (tokenCache.sessionId == sessionId) {
     return tokenCache;
   } else {
-    deleteToken(sessionId);
     return null;
   }
 }
