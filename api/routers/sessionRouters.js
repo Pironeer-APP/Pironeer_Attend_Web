@@ -6,13 +6,13 @@ const authenticateToken = require('../middlewares/authentication');
 // 세션 생성
 router.post('/createSession', sessionController.createSession);
 
-// 출석 체크 시작 // 어드민 인증?
+// 출석 체크 시작 (어드민 인증)
 router.post('/startAttendCheck/:id', sessionController.startAttendCheckById);
 
-// 모든 세션 조회 // 유저 인증 미들웨어 추가 해야하지만 테스트 귀찮아서
+// 모든 세션 조회 (유저 인증 미들웨어 추가 필요)
 router.get('/sessions', sessionController.getAllSessions);
 
-// 특정 세션 조회 (모든 유저의 출결 포함) // 어드민 인증?
+// 특정 세션 조회 (모든 유저의 출석 포함, 어드민 인증)
 router.get('/sessions/:id', sessionController.getSessionById);
 
 // 출석 체크
