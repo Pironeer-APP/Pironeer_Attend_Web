@@ -2,7 +2,7 @@ const Session  = require('../models/session');
 const Attend = require('../models/attend');
 const User = require('../models/user');
 const { createToken, getToken, restartToken, deleteToken } = require('../cache/token');
-const { createAttendCacheList, initAttendCacheList ,getAttendCacheList} = require('../cache/attendCaches');
+const { createAttendCache, initAttendCache ,getAttendCache} = require('../cache/attendCaches');
 
 // 세션 만들기
 exports.createSession = async (req, res) => {
@@ -66,10 +66,12 @@ exports.startAttendCheckById = async (req, res) => {
     }
 
     // 출석 정보를 복사한 캐시 생성 -> 캐시에 처리 후 출석 종료 후 일괄로 넘겨짐
-    const cache = createAttendCacheList(session._id, session.checksNum, attends);
+    const cache = createAttendCache(session._id, session.checksNum, attends);
+    
     if (!cache) {
       return res.status(400).send({ message: "출석 체크 생성 중 문제가 발생했습니다." });
     }
+    
     // 성공했으니 출석체크 하나 올리고 저장
     session.checksNum += 1;
     await session.save();
@@ -110,7 +112,7 @@ exports.restartAttendCheckById = async (req, res) => {
       await Promise.all(initAttendPromises);
 
       // 다시 캐시 생성
-      const cache = createAttendCacheList(session._id, attendIdx, attends);
+      const cache = createAttendCache(session._id, attendIdx, attends);
       if (!cache) {
         return res.status(400).send({ message: "출석 체크 생성 중 문제가 발생했습니다." });
       }
@@ -124,8 +126,8 @@ exports.restartAttendCheckById = async (req, res) => {
       }
       // 토큰 재시작
       restartToken(sessionId)
-      // attendCacheList 초기화
-      await initAttendCacheList(sessionId);
+      // attendCache 초기화
+      await initAttendCache(sessionId);
       
       return res.status(201).send({ message: "출석 체크가 재시작되었습니다", code: token.code, attendIdx: token.attendIdx });
     }
@@ -149,7 +151,7 @@ exports.checkAttend = async (req, res) => {
       return res.status(400).send({ message: "잘못된 코드입니다" });
     }
 
-    const attends = getAttendCacheList(sessionId);
+    const attends = getAttendCache(sessionId);
 
     const attend = attends.find(a => a.user.toString() === userId);
     if (attend) {
