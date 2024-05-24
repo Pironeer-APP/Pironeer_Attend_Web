@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const authenticateToken = require('../middlewares/authentication');
+const emailConfig = require('../../config/email');
 
 // 회원 가입 
 router.post('/signup', userController.createUser);
@@ -15,6 +16,10 @@ router.get('/users/:id', authenticateToken, userController.getUserById);
 router.put('/users/:id', authenticateToken, userController.updateUser);
 // 유저 삭제
 router.delete('/users/:id', authenticateToken, userController.deleteUser);
+//인증 이메일 전송
+router.post('/signup/send', emailConfig.sendEmail);
+//코드 인증
+router.post('/signup/cert', emailConfig.certEmail);
 
 module.exports = router;
 
@@ -184,6 +189,57 @@ module.exports = router;
  *          description: "사용자를 찾을 수 없음"
  *        500:
  *          description: "서버 오류"
+ * 
+ * /api/user/signup/send:
+ *  post:
+ *      summary: "인증 이메일 전송"
+ *      description: "사용자가 회원가입 시 입력한 이메일 주소로 인증 이메일을 전송합니다."
+ *      tags: [Users]
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      required:
+ *                          - email
+ *                      properties:
+ *                          email:
+ *                              type: string
+ *                              description: "인증 이메일을 받을 사용자의 이메일 주소"
+ *      responses:
+ *          200:
+ *              description: "이메일 전송 성공"
+ *          400:
+ *              description: "이메일 형식 오류 또는 필수 정보"
+ *          500:
+ *              description: "서버 오류"
+ * 
+ * 
+ * /api/user/signup/cert:
+ *  post:
+ *      summary: "이메일로 받은 코드 인증"
+ *      description: "사용자가 이메일로 받은 인증 코드를 제출하여 인증 절차를 완료합니다."
+ *      tags: [Users]
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      required:
+ *                          - code
+ *                      properties:
+ *                          code:
+ *                              type: string
+ *                              description: "이용자가 입력한 코드"
+ *      responses:
+ *          200:
+ *              description: "코드 인증 성공"
+ *          400:
+ *              description: "잘못된 코드 또는 이메일"
+ *          500:
+ *              description: "서버 오류"
  *
  * components:
  *  schemas:
