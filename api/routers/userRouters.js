@@ -15,7 +15,8 @@ router.get('/users/:id', authenticateToken, userController.getUserById);
 router.put('/users/:id', authenticateToken, userController.updateUser);
 // 유저 삭제
 router.delete('/users/:id', authenticateToken, userController.deleteUser);
-
+// 출석 정보 확인 edited by 진혁
+router.get('/checkAttendance/:id', authenticateToken, userController.checkAttencance);
 module.exports = router;
 
 /**
