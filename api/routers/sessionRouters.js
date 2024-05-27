@@ -24,6 +24,8 @@ router.post('/restartAttendCheck/:sessionId/:attendIdx', sessionController.resta
 // 출석 체크 조기 종료
 router.delete('/endAttendCheck/:id', sessionController.endAttendCheckById);
 
+
+
 module.exports = router;
 
 /**

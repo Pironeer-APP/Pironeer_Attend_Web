@@ -2,7 +2,6 @@ const Attend = require('../models/attend');
 
 const attendCache = {
   sessionId: null,
-  attendIdx: null,
   attends: [] // 유저의 세션에 대한 모든 출석정보(이전 출석도 가져옴)
 };
 
@@ -13,7 +12,6 @@ function createAttendCache(sessionId, attendIdx, attends) {
   }
 
   attendCache.sessionId = sessionId;
-  attendCache.attendIdx = attendIdx;
   attendCache.attends = [];
 
   attends.forEach(attend => {
@@ -50,7 +48,6 @@ function getAttendCache(sessionId) {
 
 // 캐시에 있는 정보 모두 데이터베이스에 넘기고 캐시 삭제
 async function flushAttendCache(sessionId) {
-  
   const cache = attendCache;
   if (cache.sessionId == sessionId) {
     const bulkOps = cache.attends.map(attend => ({
@@ -66,11 +63,15 @@ async function flushAttendCache(sessionId) {
     }));
 
     if (bulkOps.length > 0) {
-      await Attend.bulkWrite(bulkOps);
+      try {
+        await Attend.bulkWrite(bulkOps);
+        console.log('데이터베이스에 전달 성공:', result);
+      } catch (error) {
+        console.error('데이터 베이스에 전달 실패:', error);
+      }
     }
 
     cache.sessionId = null;
-    cache.attendIdx = null;
     cache.attends = [];
   }
 }
