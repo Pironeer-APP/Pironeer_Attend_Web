@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 // 세션
 const sessionSchema = new mongoose.Schema({
-  name:{
+  name: {
     type: String,
     required: true,
   },
