@@ -69,7 +69,7 @@ const AttendanceTokenCache = {
       // 매개변수로 attend배열을 받아옴
       attends.forEach(attend => {
         // attend중 idx가 맞은 거만 가져옴
-        let attendAtIdx = attend.attendList.find(item => item.attendIdx === attendIdx);
+        let attendAtIdx = attend.attendList.find(item => item.attendIdx == attendIdx);
         if (!attendAtIdx) { // 이게 없다면 생성 후 캐시에 저장
           attendAtIdx = { attendIdx, status: false };
           attend.attendList.push(attendAtIdx);
@@ -122,7 +122,7 @@ const AttendanceTokenCache = {
       }, TTL);
       
       this.attendCache.forEach(attend => {
-        const attendCheck = attend.attendList.find(item => item.attendIdx === this.attendIdx);
+        const attendCheck = attend.attendList.find(item => item.attendIdx == this.attendIdx);
         if (attendCheck) { 
           attendCheck.status = false;
         } else {
