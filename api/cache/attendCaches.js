@@ -65,7 +65,7 @@ async function flushAttendCache(sessionId) {
     if (bulkOps.length > 0) {
       try {
         await Attend.bulkWrite(bulkOps);
-        console.log('데이터베이스에 전달 성공:', result);
+        console.log('데이터베이스에 전달 성공:');
       } catch (error) {
         console.error('데이터 베이스에 전달 실패:', error);
       }
