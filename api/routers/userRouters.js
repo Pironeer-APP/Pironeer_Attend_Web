@@ -1,20 +1,22 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const userController = require('../controllers/userController');
-const authenticateToken = require('../middlewares/authentication');
+const userController = require("../controllers/userController");
+const authenticateToken = require("../middlewares/authentication");
 
-// 회원 가입 
-router.post('/signup', userController.createUser);
+// 회원 가입
+router.post("/signup", userController.createUser);
 // 로그인
-router.post('/login', userController.login);
+router.post("/login", userController.login);
 // 모든 유저 정보
-router.get('/users', authenticateToken, userController.getAllUsers);
+router.get("/users", authenticateToken, userController.getAllUsers);
 // 특정 유저
-router.get('/users/:id', authenticateToken, userController.getUserById);
+router.get("/users/:id", authenticateToken, userController.getUserById);
 // 유저 수정
-router.put('/users/:id', authenticateToken, userController.updateUser);
+router.put("/users/:id", authenticateToken, userController.updateUser);
 // 유저 삭제
-router.delete('/users/:id', authenticateToken, userController.deleteUser);
+router.delete("/users/:id", authenticateToken, userController.deleteUser);
+
+// router.post("/signup/admin", userController.createInitAdmin);
 
 module.exports = router;
 
