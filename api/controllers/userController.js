@@ -78,13 +78,14 @@ exports.login = async (req, res) => {
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).send("비밀번호 틀림");
     }
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "1h" });
     res.json({ message: "Login successfully", token });
   } catch (error) {
     res.status(500).send("Login error");
   }
 };
 
+//서버 실행시 1회 관리자 유저가 없을 경우 생성
 exports.createInitAdmin = async () => {
   try {
     const adminExists = await User.findOne({ isAdmin: true });
@@ -100,5 +101,43 @@ exports.createInitAdmin = async () => {
     }
   } catch (error) {
     console.error("Error creating admin user", error);
+  }
+};
+
+//관리자가 일반유저를 관리자 유저로 만들어주기.
+exports.updateUserToAdmin = async (req, res) => {
+  const { id } = req.params;
+  const { isAdmin } = req.body;
+
+  try {
+      const user = await User.findById(id);
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+
+      user.isAdmin = isAdmin;
+      await user.save();
+      res.json({ message: 'User admin status updated' });
+  } catch (err) {
+      res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// 특정 유저의 출석 정보 변경 (관리자 권한)
+exports.updateUserAttendance = async (req, res) => {
+  const { id } = req.params;
+  const { attendance } = req.body;
+
+  try {
+      const user = await User.findById(id);
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+
+      user.attendance = attendance;
+      await user.save();
+      res.json({ message: 'User attendance status updated' });
+  } catch (err) {
+      res.status(500).json({ message: 'Server error' });
   }
 };
