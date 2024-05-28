@@ -7,14 +7,14 @@ const app = express();
 
 app.use(cookieParser());
 
-//const SMTPTransport = require('nodemailer/lib/smtp-transport');
+// const SMTPTransport = require('nodemailer/lib/smtp-transport');
 
 let transporter = nodemailer.createTransport({
     service : "naver",
     port: 587,
     auth : {
-        user : process.env.user,
-        pass : process.env.pass,
+        user : process.env.USER,
+        pass : process.env.PASS,
     },
     tls : {
         rejectUnauthorized : false
@@ -34,7 +34,7 @@ exports.sendEmail =  async(req, res)=>{
         });
 
         const mailOptions = {
-            from : "cathy2750@naver.com",
+            from : "본인이메일작성",
             to: email,
             subject: "인증 관련 메일입니다",
             text: "인증번호는 " + authNum + " 입니다."

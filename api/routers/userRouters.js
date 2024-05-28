@@ -27,7 +27,8 @@ router.put("/users/:id/admin", authenticateToken, adminMiddleware, userControlle
 router.post('/signup/send', emailConfig.sendEmail);
 //코드 인증
 router.post('/signup/cert', emailConfig.certEmail);
-
+// 출석 정보 확인 edited by 진혁
+router.get('/checkAttendance/:id', authenticateToken, userController.checkAttencance);
 module.exports = router;
 
 /**
@@ -315,6 +316,46 @@ module.exports = router;
  *              description: "잘못된 코드 또는 이메일"
  *          500:
  *              description: "서버 오류"
+ * /api/user/checkAttendance/{id}:
+ *   get:
+ *     summary: Check attendance for a user
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: Attendance information retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 attend:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                       user:
+ *                         type: string
+ *                       date:
+ *                         type: string
+ *                       status:
+ *                         type: boolean
+ *                 absent:
+ *                   type: integer
+ *       404:
+ *         description: Attendance information not found
+ *       500:
+ *         description: Error checking attendance
  * 
  * components:
  *  schemas:

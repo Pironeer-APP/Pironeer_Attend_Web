@@ -101,7 +101,7 @@ exports.createInitAdmin = async () => {
       console.log("Admin user created");
     }
   } catch (error) {
-    console.error("Error creating admin user", error);
+    res.status(500).send('Login error');
   }
 };
 
@@ -124,21 +124,21 @@ exports.updateUserToAdmin = async (req, res) => {
   }
 };
 
-// 특정 유저의 출석 정보 변경 (관리자 권한)
-exports.updateUserAttendance = async (req, res) => {
-  const { id } = req.params;
-  const { attendance } = req.body;
-
+exports.checkAttencance = async(req, res) => {
   try {
-      const user = await User.findById(id);
-      if (!user) {
-          return res.status(404).json({ message: 'User not found' });
+    var absent = 0;
+    const user = await User.findById(req.params.id);
+    const attend = await Attend.find({ user: user });
+    if (!attend) {
+      return res.status(404).send({ message: "출석 정보가 없습니다." });
+    }
+    attend.forEach(attendance => {
+      if (attendance.status == false) {
+        absent = absent +1;
       }
-
-      user.attendance = attendance;
-      await user.save();
-      res.json({ message: 'User attendance status updated' });
-  } catch (err) {
-      res.status(500).json({ message: 'Server error' });
+    });
+    res.status(200).send({ message: "출석 정보가 확인되었습니다.", attend, absent });
+  } catch(error) {
+    res.status(500).send({message: "Error Checking Attendance"});
   }
 };
