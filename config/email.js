@@ -34,7 +34,7 @@ exports.sendEmail =  async(req, res)=>{
         });
 
         const mailOptions = {
-            from : "cathy2750@naver.com",
+            from : process.env.user,
             to: email,
             subject: "인증 관련 메일입니다",
             text: "인증번호는 " + authNum + " 입니다."
