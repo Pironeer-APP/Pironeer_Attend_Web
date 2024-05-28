@@ -2,13 +2,14 @@ const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
 const authenticateToken = require("../middlewares/authentication");
+const adminMiddleware = require("../middlewares/admin");
 
 // 회원 가입
 router.post("/signup", userController.createUser);
 // 로그인
 router.post("/login", userController.login);
 // 모든 유저 정보
-router.get("/users", authenticateToken, userController.getAllUsers);
+router.get("/users",authenticateToken,adminMiddleware, userController.getAllUsers);
 // 특정 유저
 router.get("/users/:id", authenticateToken, userController.getUserById);
 // 유저 수정
@@ -16,11 +17,24 @@ router.put("/users/:id", authenticateToken, userController.updateUser);
 // 유저 삭제
 router.delete("/users/:id", authenticateToken, userController.deleteUser);
 
-// router.post("/signup/admin", userController.createInitAdmin);
+// 유저 -> 관리자
+router.put("/users/:id/admin", authenticateToken, adminMiddleware, userController.updateUserToAdmin);
+// 특정 유저의 출석 정보 변경
+// router.put("/users/:id/attendance", authenticateToken, adminMiddleware, userController.updateUserAttendance);
 
 module.exports = router;
 
 /**
+ * @swagger
+ * tags:
+ *   - name: Users
+ *     description: 유저 관련 작업
+ *   - name: Admin
+ *     description: 관리자 관련 작업
+ */
+
+/**
+ * 
  * @swagger
  * paths:
  *  /api/user/signup:
@@ -97,7 +111,7 @@ module.exports = router;
  *    get:
  *      summary: "모든 유저 조회"
  *      description: "모든 사용자의 정보를 조회합니다."
- *      tags: [Users]
+ *      tags: [Admin]
  *      security:
  *        - BearerAuth: []
  *      responses:
@@ -186,7 +200,65 @@ module.exports = router;
  *          description: "사용자를 찾을 수 없음"
  *        500:
  *          description: "서버 오류"
- *
+  *  /api/user/users/{id}/admin:
+ *    put:
+ *      summary: "유저를 관리자 권한으로 업데이트"
+ *      tags: [Admin]
+ *      security:
+ *        - BearerAuth: []
+ *      parameters:
+ *        - in: path
+ *          name: id
+ *          required: true
+ *          schema:
+ *            type: string
+ *          description: "업데이트할 사용자의 ID"
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                isAdmin:
+ *                  type: boolean
+ *      responses:
+ *        200:
+ *          description: "사용자 관리자 권한 업데이트 성공"
+ *        404:
+ *          description: "사용자를 찾을 수 없음"
+ *        500:
+ *          description: "서버 오류"
+ *  /api/user/users/{id}/attendance:
+ *    put:
+ *      summary: "유저의 출석 정보를 업데이트"
+ *      tags: [Admin]
+ *      security:
+ *        - BearerAuth: []
+ *      parameters:
+ *        - in: path
+ *          name: id
+ *          required: true
+ *          schema:
+ *            type: string
+ *          description: "업데이트할 사용자의 ID"
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                attendance:
+ *                  type: boolean
+ *      responses:
+ *        200:
+ *          description: "사용자 출석 정보 업데이트 성공"
+ *        404:
+ *          description: "사용자를 찾을 수 없음"
+ *        500:
+ *          description: "서버 오류"
+ * 
  * components:
  *  schemas:
  *    User:
