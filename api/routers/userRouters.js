@@ -320,6 +320,8 @@ module.exports = router;
  *   get:
  *     summary: Check attendance for a user
  *     tags: [Users]
+ *     security:
+ *        - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
