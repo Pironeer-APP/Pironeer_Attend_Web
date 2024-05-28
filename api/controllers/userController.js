@@ -142,3 +142,22 @@ exports.updateUserAttendance = async (req, res) => {
       res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.checkAttencance = async(req, res) => {
+  try {
+    var absent = 0;
+    const user = await User.findById(req.params.id);
+    const attend = await Attend.find({ user: user });
+    if (!attend) {
+      return res.status(404).send({ message: "출석 정보가 없습니다." });
+    }
+    attend.forEach(attendance => {
+      if (attendance.status == false) {
+        absent = absent +1;
+      }
+    });
+    res.status(200).send({ message: "출석 정보가 확인되었습니다.", attend, absent });
+  } catch(error) {
+    res.status(500).send({message: "Error Checking Attendance"});
+  }
+};
