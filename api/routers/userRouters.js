@@ -238,7 +238,7 @@ module.exports = router;
  *          description: "서버 오류"
  *  /api/user/users/{id}/attendance:
  *    put:
- *      summary: Update attendance status for a specific user and session
+ *      summary: 특정 유저의 해당 세션의 원하는 출석체크 값 바꾸기
  *      tags: [Admin]
  *      security:
  *        - BearerAuth: []
@@ -345,7 +345,7 @@ module.exports = router;
  *                  description: "이용자가 입력한 코드"
  * /api/user/checkAttendance/{id}:
  *   get:
- *     summary: Check attendance for a user
+ *     summary: 특정 유저의 출석 정보 확인
  *     tags: [Users]
  *     security:
  *       - BearerAuth: []
