@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const userController = require("../controllers/userController");
-const authenticateToken = require("../middlewares/authentication");
-const adminMiddleware = require("../middlewares/admin");
+const userController = require('../controllers/userController');
+const authenticateToken = require('../middlewares/authentication');
 const emailConfig = require('../../config/email');
+const adminMiddleware = require("../middlewares/admin");
 
 // 회원 가입
 router.post("/signup", userController.createUser);
