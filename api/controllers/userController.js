@@ -142,3 +142,33 @@ exports.checkAttencance = async(req, res) => {
     res.status(500).send({message: "Error Checking Attendance"});
   }
 };
+
+exports.updateUserAttendance =  async (req, res) => {
+  try {
+      const { userId, sessionId, attendIdx, status } = req.body;
+
+      // 해당하는 유저의 원하는 날의 세션 찾기
+      const attendance = await Attend.findOne({ user: userId, session: sessionId });
+
+      if (!attendance) {
+          return res.status(404).json({ message: 'Attendance record not found' });
+      }
+
+      // 해당 인덱스의 출석 찾기
+      const attendTime = attendance.attendList.find(time => time.attendIdx === attendIdx);
+
+      if (!attendTime) {
+          return res.status(404).json({ message: 'Attendance entry not found' });
+      }
+
+      // 상태 업데이트하기
+      attendTime.status = status;
+
+      // DB에 업데이트
+      await attendance.save();
+
+      res.status(200).json({ message: 'Attendance updated successfully', attendance });
+  } catch (error) {
+      res.status(500).json({ message: 'Server error', error });
+  }
+};
