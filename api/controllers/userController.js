@@ -1,6 +1,7 @@
-const User = require("../models/user");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+const User = require('../models/user');
+const Attend = require('../models/attend');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 // JWT 비밀키
 const JWT_SECRET = "piro";

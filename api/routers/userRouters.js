@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const userController = require("../controllers/userController");
-const authenticateToken = require("../middlewares/authentication");
+const userController = require('../controllers/userController');
+const authenticateToken = require('../middlewares/authentication');
+const emailConfig = require('../../config/email');
 const adminMiddleware = require("../middlewares/admin");
 
 // 회원 가입
@@ -15,12 +16,7 @@ router.get("/users/:id", authenticateToken, userController.getUserById);
 // 유저 수정
 router.put("/users/:id", authenticateToken, userController.updateUser);
 // 유저 삭제
-router.delete("/users/:id", authenticateToken, userController.deleteUser);
-
-// 유저 -> 관리자
-router.put("/users/:id/admin", authenticateToken, adminMiddleware, userController.updateUserToAdmin);
-// 특정 유저의 출석 정보 변경
-// router.put("/users/:id/attendance", authenticateToken, adminMiddleware, userController.updateUserAttendance);
+router.delete('/users/:id', authenticateToken, userController.deleteUser);
 
 module.exports = router;
 
@@ -258,7 +254,7 @@ module.exports = router;
  *          description: "사용자를 찾을 수 없음"
  *        500:
  *          description: "서버 오류"
- * 
+ *
  * components:
  *  schemas:
  *    User:
