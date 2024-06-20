@@ -21,6 +21,9 @@ router.post('/checkAttend/:userId', sessionController.checkAttend);
 // 출석 체크 재시작
 router.post('/restartAttendCheck/:sessionId/:attendIdx',sessionController.restartAttendCheckBySession);
 
+// 출석체크 진행여부
+router.get('/isCheckAttend', sessionController.isCheckAttend);
+
 // 출석 체크 조기 종료
 router.delete('/endAttendCheck', sessionController.endAttendCheck);
 
@@ -215,6 +218,43 @@ module.exports = router;
  *         description: 출석 체크가 성공적으로 종료됨
  *       400:
  *         description: 출석 체크 종료 실패
+ *       500:
+ *         description: 서버 오류
+ * 
+ * /api/session/isCheckAttend:
+ *   get:
+ *     summary: 출석 체크 진행 여부 확인
+ *     tags: [Attendance]
+ *     responses:
+ *       200:
+ *         description: 출석 체크가 진행 중임
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "출석 체크가 진행 중입니다."
+ *                 token:
+ *                   type: object
+ *                   properties:
+ *                     sessionId:
+ *                       type: string
+ *                     attendIdx:
+ *                       type: integer
+ *                     expireAt:
+ *                       type: integer
+ *       404:
+ *         description: 출석 체크가 진행 중이 아님
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "출석 체크가 진행 중이 아닙니다."
  *       500:
  *         description: 서버 오류
  */

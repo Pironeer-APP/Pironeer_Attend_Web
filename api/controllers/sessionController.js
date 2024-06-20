@@ -121,6 +121,21 @@ exports.restartAttendCheckBySession = async (req, res) => {
   }
 };
 
+// 출석체크 진행여부
+exports.isCheckAttend = async (req, res) => {
+  try {
+    const token = AttendanceTokenCache.nowToken()
+    if (!token) {
+      return res.status(404).send({ message: "출석 체크 진행중이 아닙니다." });
+    }
+    const { code, ...tokenWithOutCode } = token;
+    res.status(200).send({ message: "출석체크 진행중", token: tokenWithOutCode});
+  } catch (error) {
+    console.error("출석 확인 중 오류가 발생했습니다", error);
+    res.status(500).send({ message: "출석 확인 중 오류가 발생했습니다", error });
+  }
+};
+
 // 출석체크 진행 함수
 // 캐시의 코드와 본문의 코드를 비교 후 캐시에 저장
 exports.checkAttend = async (req, res) => {
