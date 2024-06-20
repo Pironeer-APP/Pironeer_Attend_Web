@@ -1,5 +1,5 @@
-const swaggerUi = require("swagger-ui-express")
-const swaggereJsdoc = require("swagger-jsdoc")
+const swaggerUi = require("swagger-ui-express");
+const swaggerJsdoc = require("swagger-jsdoc");
 
 const options = {
   swaggerDefinition: {
@@ -7,27 +7,27 @@ const options = {
     info: {
       version: "1.0.0",
       title: "출석체크",
-      description:
-        "프로젝트 설명 Node.js Swaager swagger-jsdoc 방식 RestFul API 클라이언트 UI",
+      description: "프로젝트 설명 Node.js Swagger swagger-jsdoc 방식 RestFul API 클라이언트 UI",
     },
     servers: [
-        {
-          url: '3.38.96.3:3000', // Adjust this to your server address
-          description: 'Local server'
+      {
+        url: "http://localhost:3000", // Adjust this to your server address
+        description: "Local server",
+      },
+    ],
+    components: {
+      securitySchemes: {
+        BearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
         },
-      ],
-      components: {
-        securitySchemes: {
-          BearerAuth: {
-            type: 'http',
-            scheme: 'bearer',
-            bearerFormat: 'JWT'
-          }
-        }
-      }
+      },
     },
-  apis: ["./api/routers/*.js"], //Swagger 파일 연동
-}
-const specs = swaggereJsdoc(options)
+  },
+  apis: ["./api/routers/*.js"], // Swagger 파일 연동
+};
 
-module.exports = { swaggerUi, specs }
+const specs = swaggerJsdoc(options);
+
+module.exports = { swaggerUi, specs };

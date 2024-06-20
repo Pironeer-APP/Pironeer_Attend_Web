@@ -2,30 +2,31 @@ const express = require('express');
 const router = express.Router();
 const sessionController = require('../controllers/sessionController');
 const authenticateToken = require('../middlewares/authentication');
+const adminMiddleware = require("../middlewares/admin");
 
 // 세션 생성
-router.post('/createSession', sessionController.createSession);
+router.post('/createSession', authenticateToken,adminMiddleware, sessionController.createSession);
 
 // 출석 체크 시작 (어드민 인증 필요)
-router.post('/startAttendCheck/:id', sessionController.startAttendCheckBySession);
+router.post('/startAttendCheck/:id',authenticateToken,adminMiddleware, sessionController.startAttendCheckBySession);
 
 // 모든 세션 조회 (유저 인증 필요)
-router.get('/sessions', sessionController.getAllSessions);
+router.get('/sessions', authenticateToken, sessionController.getAllSessions);
 
 // 특정 세션 조회 (모든 유저의 출석 포함, 어드민 인증 필요)
-router.get('/sessions/:id', sessionController.getSessionById);
+router.get('/sessions/:id',authenticateToken,adminMiddleware, sessionController.getSessionById);
 
 // 출석 체크
-router.post('/checkAttend/:userId', sessionController.checkAttend);
+router.post('/checkAttend/:userId', authenticateToken, sessionController.checkAttend);
 
 // 출석 체크 재시작
-router.post('/restartAttendCheck/:sessionId/:attendIdx',sessionController.restartAttendCheckBySession);
+router.post('/restartAttendCheck/:sessionId/:attendIdx', authenticateToken,adminMiddleware, sessionController.restartAttendCheckBySession);
 
 // 출석체크 진행여부
-router.get('/isCheckAttend', sessionController.isCheckAttend);
+router.get('/isCheckAttend', authenticateToken, sessionController.isCheckAttend);
 
 // 출석 체크 조기 종료
-router.delete('/endAttendCheck', sessionController.endAttendCheck);
+router.delete('/endAttendCheck',authenticateToken,adminMiddleware, sessionController.endAttendCheck);
 
 module.exports = router;
 
@@ -44,6 +45,8 @@ module.exports = router;
  *   post:
  *     summary: 새로운 세션 생성
  *     tags: [Sessions]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -80,6 +83,8 @@ module.exports = router;
  *   post:
  *     summary: 세션의 출석 체크 시작
  *     tags: [Sessions]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -110,6 +115,8 @@ module.exports = router;
  *   get:
  *     summary: 모든 세션 조회
  *     tags: [Sessions]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: 모든 세션 목록
@@ -126,6 +133,8 @@ module.exports = router;
  *   get:
  *     summary: 특정 세션 조회 (모든 유저의 출석 포함)
  *     tags: [Sessions]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -156,6 +165,8 @@ module.exports = router;
  *   post:
  *     summary: 사용자 출석 체크
  *     tags: [Attendance]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -188,6 +199,8 @@ module.exports = router;
  *   post:
  *     summary: 특정 인덱스에 대한 출석 체크 재시작
  *     tags: [Attendance]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: sessionId
@@ -213,6 +226,8 @@ module.exports = router;
  *   delete:
  *     summary: 출석 체크 조기 종료
  *     tags: [Attendance]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       201:
  *         description: 출석 체크가 성공적으로 종료됨
@@ -225,6 +240,8 @@ module.exports = router;
  *   get:
  *     summary: 출석 체크 진행 여부 확인
  *     tags: [Attendance]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: 출석 체크가 진행 중임
@@ -245,6 +262,9 @@ module.exports = router;
  *                       type: integer
  *                     expireAt:
  *                       type: integer
+ *                 isChecked:
+ *                      type: boolean
+ *                      example: true
  *       404:
  *         description: 출석 체크가 진행 중이 아님
  *         content:
@@ -299,4 +319,9 @@ module.exports = router;
  *               status:
  *                 type: boolean
  *                 description: 출석 상태 (참석한 경우 true)
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
  */

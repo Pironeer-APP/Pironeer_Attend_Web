@@ -129,7 +129,9 @@ exports.isCheckAttend = async (req, res) => {
       return res.status(404).send({ message: "출석 체크 진행중이 아닙니다." });
     }
     const { code, ...tokenWithOutCode } = token;
-    res.status(200).send({ message: "출석체크 진행중", token: tokenWithOutCode});
+    user = req.user
+    userCheckedStatus = AttendanceTokenCache.isCheckedByUser(user.id,token.attendIdx)
+    res.status(200).send({ message: "출석체크 진행중", token: tokenWithOutCode, isChecked : userCheckedStatus});
   } catch (error) {
     console.error("출석 확인 중 오류가 발생했습니다", error);
     res.status(500).send({ message: "출석 확인 중 오류가 발생했습니다", error });

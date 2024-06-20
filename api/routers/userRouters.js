@@ -114,6 +114,7 @@ module.exports = router;
  *          description: "인증 실패"
  *        500:
  *          description: "서버 오류"
+ *  
  *  /api/user/users:
  *    get:
  *      summary: "모든 유저 조회"

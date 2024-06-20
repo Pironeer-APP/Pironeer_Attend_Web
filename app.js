@@ -5,6 +5,7 @@ const api = require("./api/routers/index");
 const { createInitAdmin } = require("./api/controllers/userController");
 
 const app = express();
+
 app.use(cors());
 
 app.use(express.json());
