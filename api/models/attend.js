@@ -5,18 +5,21 @@ const attendSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
+        required: true, // 유저는 필수 값으로 설정
         index: true
     },
     session: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Session',
+        required: true, // 세션은 필수 값으로 설정
+        index: true
     },
     attendList: [{
-      attendIdx:{
+      attendIdx: {
         type: Number,
-        require: true,
+        required: true, // require -> required 로 수정
       },
-      status:{
+      status: {
         type: Boolean,
         default: false,
       }
@@ -25,4 +28,4 @@ const attendSchema = new mongoose.Schema({
 
 const Attend = mongoose.model('Attend', attendSchema);
 
-module.exports = Attend 
+module.exports = Attend;
