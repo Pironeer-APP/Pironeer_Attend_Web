@@ -28,6 +28,9 @@ router.get('/isCheckAttend', authenticateToken, sessionController.isCheckAttend)
 // 출석 체크 조기 종료
 router.delete('/endAttendCheck',authenticateToken,adminMiddleware, sessionController.endAttendCheck);
 
+// 세션 삭제 (어드민 인증 필요)
+router.delete('/deleteSession/:sessionId', authenticateToken, adminMiddleware, sessionController.deleteSession);
+
 module.exports = router;
 
 /**
@@ -233,6 +236,36 @@ module.exports = router;
  *         description: 출석 체크가 성공적으로 종료됨
  *       400:
  *         description: 출석 체크 종료 실패
+ *       500:
+ *         description: 서버 오류
+ * 
+ * /api/session/deleteSession/{sessionId}:
+ *   delete:
+ *     summary: 세션 삭제
+ *     tags: [Sessions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: 세션 ID
+ *     responses:
+ *       200:
+ *         description: 세션이 성공적으로 삭제됨
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: 잘못된 요청
+ *       404:
+ *         description: 세션을 찾을 수 없음
  *       500:
  *         description: 서버 오류
  * 

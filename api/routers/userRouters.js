@@ -30,7 +30,6 @@ router.post('/signup/cert', emailConfig.certEmail);
 // 출석 정보 확인 edited by 진혁
 router.get('/checkAttendance/:id', authenticateToken, userController.checkAttendance);
 module.exports = router;
-
 /**
  * @swagger
  * tags:
@@ -39,7 +38,6 @@ module.exports = router;
  *   - name: Admin
  *     description: 관리자 관련 작업
  */
-
 
 /**
  * @swagger
@@ -121,7 +119,7 @@ module.exports = router;
  *      description: "모든 사용자의 정보를 조회합니다."
  *      tags: [Admin]
  *      security:
- *        - BearerAuth: []
+ *        - bearerAuth: []
  *      responses:
  *        200:
  *          description: "모든 사용자 정보 반환"
@@ -137,7 +135,7 @@ module.exports = router;
  *      description: "ID로 특정 사용자의 정보를 조회합니다."
  *      tags: [Users]
  *      security:
- *        - BearerAuth: []
+ *        - bearerAuth: []
  *      parameters:
  *        - in: path
  *          name: id
@@ -159,7 +157,7 @@ module.exports = router;
  *      description: "ID로 특정 사용자의 정보를 업데이트합니다."
  *      tags: [Users]
  *      security:
- *        - BearerAuth: []
+ *        - bearerAuth: []
  *      parameters:
  *        - in: path
  *          name: id
@@ -193,7 +191,7 @@ module.exports = router;
  *      description: "ID로 특정 사용자를 삭제합니다."
  *      tags: [Users]
  *      security:
- *        - BearerAuth: []
+ *        - bearerAuth: []
  *      parameters:
  *        - in: path
  *          name: id
@@ -213,7 +211,7 @@ module.exports = router;
  *      summary: "유저를 관리자 권한으로 업데이트"
  *      tags: [Admin]
  *      security:
- *        - BearerAuth: []
+ *        - bearerAuth: []
  *      parameters:
  *        - in: path
  *          name: id
@@ -242,7 +240,14 @@ module.exports = router;
  *      summary: 특정 유저의 해당 세션의 원하는 출석체크 값 바꾸기
  *      tags: [Admin]
  *      security:
- *        - BearerAuth: []
+ *        - bearerAuth: []
+ *      parameters:
+ *        - in: path
+ *          name: id
+ *          required: true
+ *          schema:
+ *            type: string
+ *          description: "업데이트할 사용자의 ID"
  *      requestBody:
  *        required: true
  *        content:
@@ -276,7 +281,7 @@ module.exports = router;
  *                properties:
  *                  message:
  *                    type: string
- *                    example: Attendance updated successfully
+ *                    example: "Attendance updated successfully"
  *                  attendance:
  *                    type: object
  *                    description: The updated attendance document
@@ -289,7 +294,7 @@ module.exports = router;
  *                properties:
  *                  message:
  *                    type: string
- *                    example: Attendance record not found
+ *                    example: "Attendance record not found"
  *        500:
  *          description: Server error
  *          content:
@@ -299,10 +304,10 @@ module.exports = router;
  *                properties:
  *                  message:
  *                    type: string
- *                    example: Server error
+ *                    example: "Server error"
  *                  error:
  *                    type: string
- *                    example: error details
+ *                    example: "error details"
  *  /api/user/signup/send:
  *    post:
  *      summary: "인증 이메일 전송"
@@ -344,48 +349,61 @@ module.exports = router;
  *                code:
  *                  type: string
  *                  description: "이용자가 입력한 코드"
- * /api/user/checkAttendance/{id}:
- *   get:
- *     summary: 특정 유저의 출석 정보 확인
- *     tags: [Users]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: User ID
- *     responses:
- *       200:
- *         description: Attendance information retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 attend:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       _id:
- *                         type: string
- *                       user:
- *                         type: string
- *                       date:
- *                         type: string
- *                       status:
- *                         type: boolean
- *                 absent:
- *                   type: integer
- *       404:
- *         description: Attendance information not found
- *       500:
- *         description: Error checking attendance
+ *  /api/user/checkAttendance/{id}:
+ *    get:
+ *      summary: 특정 유저의 출석 정보 확인
+ *      tags: [Users]
+ *      security:
+ *        - bearerAuth: []
+ *      parameters:
+ *        - in: path
+ *          name: id
+ *          required: true
+ *          schema:
+ *            type: string
+ *          description: "User ID"
+ *      responses:
+ *        200:
+ *          description: "Attendance information retrieved successfully"
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: object
+ *                properties:
+ *                  message:
+ *                    type: string
+ *                  attend:
+ *                    type: array
+ *                    items:
+ *                      type: object
+ *                      properties:
+ *                        _id:
+ *                          type: string
+ *                        user:
+ *                          type: string
+ *                        session:
+ *                          type: string
+ *                        attendList:
+ *                          type: array
+ *                          items: 
+ *                            type: object
+ *                            properties:   
+ *                              _id: 
+ *                                type: string
+ *                              attendIdx:
+ *                                type: string
+ *                              status: 
+ *                                type: boolean
+ *                  session_name:
+ *                    type: string
+ *                  session_date:
+ *                    type: string 
+ *                  absent:
+ *                    type: integer
+ *        404:
+ *          description: "Attendance information not found"
+ *        500:
+ *          description: "Error checking attendance"
  * components:
  *  schemas:
  *    User:

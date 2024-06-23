@@ -35,6 +35,33 @@ exports.createSession = async (req, res) => {
   }
 };
 
+//세션 지우기
+exports.deleteSession = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+
+    if (!sessionId) {
+      return res.status(400).send({ message: "세션 ID가 필요합니다" });
+    }
+
+    // 세션이 존재하는지 확인
+    const session = await Session.findById(sessionId);
+    if (!session) {
+      return res.status(404).send({ message: "세션을 찾을 수 없습니다" });
+    }
+
+    // 세션과 관련된 출석 정보를 삭제
+    await Attend.deleteMany({ session: sessionId });
+
+    // 세션 삭제
+    await Session.findByIdAndDelete(sessionId);
+
+    res.status(200).send({ message: "세션이 성공적으로 삭제되었습니다" });
+  } catch (error) {
+    res.status(500).send({ message: "세션 삭제 중 오류가 발생했습니다", error });
+  }
+};
+
 // 세션에 대한 출석 시작 (인덱스 자동)
 exports.startAttendCheckBySession = async (req, res) => {
   try {
@@ -53,7 +80,7 @@ exports.startAttendCheckBySession = async (req, res) => {
     }
 
     // 3번의 출석까지만 (아래 수정시 n번의 출석까지 가능)
-    if (session.checksNum >= 4) {
+    if (session.checksNum >= 3) {
       return res.status(400).send({ message: "최대 출석 체크 수에 도달했습니다" });
     }
 
