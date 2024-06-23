@@ -1,5 +1,6 @@
 const User = require("../models/user");
 const Attend = require('../models/attend');
+const Session = require('../models/session')
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -124,24 +125,58 @@ exports.updateUserToAdmin = async (req, res) => {
   }
 };
 
-exports.checkAttencance = async(req, res) => {
+exports.checkAttendance = async (req, res) => {
   try {
-    var absent = 0;
+    let absent = 0;
     const user = await User.findById(req.params.id);
-    const attend = await Attend.find({ user: user });
-    if (!attend) {
+    if (!user) {
+      return res.status(404).send({ message: "사용자를 찾을 수 없습니다." });
+    }
+
+    const attendances = await Attend.find({ user: user });
+    if (!attendances || attendances.length === 0) {
       return res.status(404).send({ message: "출석 정보가 없습니다." });
     }
-    attend.forEach(attendance => {
-      if (attendance.status == false) {
-        absent = absent +1;
+
+    const sessionIds = attendances.map(attendance => attendance.session);
+    const sessions = await Session.find({ _id: { $in: sessionIds } });
+
+    const sessionMap = sessions.reduce((map, session) => {
+      map[session._id] = session;
+      return map;
+    }, {});
+
+    const updatedAttendances = attendances.map(attendance => {
+      const session = sessionMap[attendance.session];
+      if (session) {
+        const updatedAttendance = {
+          ...attendance._doc, // 기존 attendance 객체의 복사본 생성
+          session_name: session.name,
+          session_date: session.date
+        };
+        let noCheck = 0;
+        attendance.attendList.forEach(attend => {
+          if (attend.status === false) {
+            noCheck += 1;
+          }
+        });
+        if (noCheck === 1) {
+          absent += 0.5;
+        } else if (noCheck >= 2) {
+          absent += 1;
+        }
+        return updatedAttendance;
       }
+      return attendance;
     });
-    res.status(200).send({ message: "출석 정보가 확인되었습니다.", attend, absent });
-  } catch(error) {
-    res.status(500).send({message: "Error Checking Attendance"});
+
+    res.status(200).send({ message: "출석 정보가 확인되었습니다.", attendances: updatedAttendances, absent });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "출석 정보를 확인하는 중 오류가 발생했습니다." });
   }
 };
+
 
 exports.updateUserAttendance =  async (req, res) => {
   try {

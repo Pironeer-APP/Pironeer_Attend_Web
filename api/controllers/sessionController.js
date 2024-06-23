@@ -53,7 +53,7 @@ exports.startAttendCheckBySession = async (req, res) => {
     }
 
     // 3번의 출석까지만 (아래 수정시 n번의 출석까지 가능)
-    if (session.checksNum >= 3) {
+    if (session.checksNum >= 4) {
       return res.status(400).send({ message: "최대 출석 체크 수에 도달했습니다" });
     }
 
@@ -108,6 +108,7 @@ exports.restartAttendCheckBySession = async (req, res) => {
       // 비정상으로 종료 -> 데이터 베이스에 영향 x 즉, 원래(재시작 이전)출결정보
       return res.status(201).send({ message: "출석 체크가 재시작되었습니다", code: newToken.code, attendIdx: newToken.attendIdx });
     } else {
+      // 숫자로 바꿔서 비교
       if (token.attendIdx !== parseInt(attendIdx, 10)) {
         return res.status(400).send({ message: "다른 출석 체크가 진행 중입니다." });
       }
