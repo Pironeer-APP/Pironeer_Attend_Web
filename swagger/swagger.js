@@ -11,8 +11,8 @@ const options = {
     },
     servers: [
       {
-        url: "http://3.38.96.3:3000", // Adjust this to your server address
-        description: "Test server",
+        url: "https://piro-recruiting.top", // Adjust this to your server address
+        description: "api server",
       },
     ],
     components: {
