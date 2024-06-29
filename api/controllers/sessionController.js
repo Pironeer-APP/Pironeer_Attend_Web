@@ -50,8 +50,8 @@ exports.deleteSession = async (req, res) => {
       return res.status(404).send({ message: "세션을 찾을 수 없습니다" });
     }
 
-    // 세션과 관련된 출석 정보를 삭제
-    await Attend.deleteMany({ session: sessionId });
+    // 세션과 관련된 출석 정보를 삭제 -> 로그 남기기위해 attend는 디비에서 삭제 xs
+    // await Attend.deleteMany({ session: sessionId });
 
     // 세션 삭제
     await Session.findByIdAndDelete(sessionId);
