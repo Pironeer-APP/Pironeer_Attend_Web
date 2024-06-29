@@ -22,11 +22,18 @@ exports.createSession = async (req, res) => {
 
     // 모든 사용자에 대한 출결 정보 데이터 베이스 생성
     const attendDocuments = users.map(user => ({
-      user: user._id,
-      session: session._id,
+      user: {
+        userId: user._id,
+        username: user.username
+      },
+      session: {
+        sessionId: session._id,
+        name: session.name,
+        date: session.date
+      },
       attendList: []
     }));
-    
+
     await Attend.insertMany(attendDocuments);
 
     res.status(201).send({ message: "세션이 성공적으로 생성되었습니다", session });
@@ -35,7 +42,7 @@ exports.createSession = async (req, res) => {
   }
 };
 
-//세션 지우기
+// 세션 지우기
 exports.deleteSession = async (req, res) => {
   try {
     const { sessionId } = req.params;
@@ -51,7 +58,7 @@ exports.deleteSession = async (req, res) => {
     }
 
     // 세션과 관련된 출석 정보를 삭제
-    await Attend.deleteMany({ session: sessionId });
+    await Attend.deleteMany({ 'session.sessionId': sessionId });
 
     // 세션 삭제
     await Session.findByIdAndDelete(sessionId);
@@ -85,7 +92,7 @@ exports.startAttendCheckBySession = async (req, res) => {
     }
 
     // 모든 출석 정보 조회(만일 세션 생성시 없는 유저는 출석 정보 x)
-    const attend = await Attend.find({ session: session._id });
+    const attend = await Attend.find({ 'session.sessionId': session._id });
     if (!attend.length) {
       return res.status(400).send({ message: "출석 정보가 없습니다." });
     }
@@ -105,6 +112,7 @@ exports.startAttendCheckBySession = async (req, res) => {
   }
 };
 
+// 출석 체크 재시작
 exports.restartAttendCheckBySession = async (req, res) => {
   try {
     const { sessionId, attendIdx } = req.params;
@@ -124,15 +132,15 @@ exports.restartAttendCheckBySession = async (req, res) => {
     const token = AttendanceTokenCache.nowToken();
     if (!token) { // 토큰이 없을 경우 
       // 데이터베이스에서 출결정보 가져옴
-      const attends = await Attend.find({ session: session._id });
+      const attends = await Attend.find({ 'session.sessionId': session._id });
 
-      // 캐시에 넘김 이떄 출석이 된 것도 캐시에는 출석이 false로 저장(디비에는 영향 x)
+      // 캐시에 넘김 이때 출석이 된 것도 캐시에는 출석이 false로 저장(디비에는 영향 x)
       const newToken = await AttendanceTokenCache.setToken(sessionId, attendIdx, attends);
       if (!newToken) { // 이 에러는 일어나지 않아
         return res.status(400).send({ message: "이미 출석 체크가 진행 중입니다." });
       }
       // 방금 시작된 출석이 정상 종료 -> 데이터 베이스가 덮어쓰여짐
-      // 비정상으로 종료 -> 데이터 베이스에 영향 x 즉, 원래(재시작 이전)출결정보
+      // 비정상으로 종료 -> 데이터 베이스에 영향 x 즉, 원래(재시작 이전) 출결정보
       return res.status(201).send({ message: "출석 체크가 재시작되었습니다", code: newToken.code, attendIdx: newToken.attendIdx });
     } else {
       // 숫자로 바꿔서 비교
@@ -149,38 +157,38 @@ exports.restartAttendCheckBySession = async (req, res) => {
   }
 };
 
-// 출석체크 진행여부
+// 출석 체크 진행 여부
 exports.isCheck = async (req, res) => {
   try {
-    const token = AttendanceTokenCache.nowToken()
+    const token = AttendanceTokenCache.nowToken();
     if (!token) {
-      return res.status(404).send({ message: "출석 체크 진행중이 아닙니다." });
+      return res.status(404).send({ message: "출석 체크 진행 중이 아닙니다." });
     }
-    res.status(200).send({ message: "출석체크 진행중", token: token});
+    res.status(200).send({ message: "출석 체크 진행 중", token: token });
   } catch (error) {
     console.error("출석 확인 중 오류가 발생했습니다", error);
     res.status(500).send({ message: "출석 확인 중 오류가 발생했습니다", error });
   }
 };
 
-// 출석체크 진행여부
+// 특정 유저의 출석 체크 여부 확인
 exports.isCheckAttend = async (req, res) => {
   try {
-    const token = AttendanceTokenCache.nowToken()
+    const token = AttendanceTokenCache.nowToken();
     if (!token) {
-      return res.status(404).send({ message: "출석 체크 진행중이 아닙니다." });
+      return res.status(404).send({ message: "출석 체크 진행 중이 아닙니다." });
     }
-    const { code, ...tokenWithOutCode } = token;
-    user = req.user
-    userCheckedStatus = AttendanceTokenCache.isCheckedByUser(user.id,token.attendIdx)
-    res.status(200).send({ message: "출석체크 진행중", token: tokenWithOutCode, isChecked : userCheckedStatus});
+    const { code, ...tokenWithoutCode } = token;
+    const user = req.user;
+    const userCheckedStatus = AttendanceTokenCache.isCheckedByUser(user.id, token.attendIdx);
+    res.status(200).send({ message: "출석 체크 진행 중", token: tokenWithoutCode, isChecked: userCheckedStatus });
   } catch (error) {
     console.error("출석 확인 중 오류가 발생했습니다", error);
     res.status(500).send({ message: "출석 확인 중 오류가 발생했습니다", error });
   }
 };
 
-// 출석체크 진행 함수
+// 출석 체크 진행 함수
 // 캐시의 코드와 본문의 코드를 비교 후 캐시에 저장
 exports.checkAttend = async (req, res) => {
   try {
@@ -205,10 +213,10 @@ exports.checkAttend = async (req, res) => {
     }
 
     // 출석정보 중 유저에 대한 출석정보
-    const attend = attendCache.find(atd => atd.user.toString() == userId);
+    const attend = attendCache.find(atd => atd.user.userId.toString() === userId);
     // 출석 정보에 대한 예외처리 및 상태 변환
     if (attend) {
-      const attendCheck = attend.attendList.find(item => item.attendIdx == token.attendIdx);
+      const attendCheck = attend.attendList.find(item => item.attendIdx === token.attendIdx);
       if (attendCheck) {
         if (attendCheck.status) {
           return res.status(400).send({ message: "이미 출석 했습니다." });
@@ -228,6 +236,7 @@ exports.checkAttend = async (req, res) => {
   }
 };
 
+// 출석 체크 종료
 exports.endAttendCheck = async (req, res) => {
   try {
     const token = AttendanceTokenCache.nowToken();
@@ -244,6 +253,7 @@ exports.endAttendCheck = async (req, res) => {
   }
 };
 
+// 모든 세션 가져오기
 exports.getAllSessions = async (req, res) => {
   try {
     const sessions = await Session.find({});
@@ -253,6 +263,7 @@ exports.getAllSessions = async (req, res) => {
   }
 };
 
+// 세션 ID로 세션 가져오기
 exports.getSessionById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -262,7 +273,7 @@ exports.getSessionById = async (req, res) => {
       return res.status(404).send({ message: "세션을 찾을 수 없습니다" });
     }
 
-    const attends = await Attend.find({ session: session._id });
+    const attends = await Attend.find({ 'session.sessionId': session._id });
     res.status(200).send({ session, attends });
   } catch (error) {
     res.status(500).send({ message: "세션을 가져오는 중 오류가 발생했습니다", error });
