@@ -1,6 +1,6 @@
 const User = require("../models/user");
 const Attend = require('../models/attend');
-const Session = require('../models/session');
+const Session = require('../models/session')
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -87,7 +87,7 @@ exports.login = async (req, res) => {
   }
 };
 
-// 서버 실행 시 1회 관리자 유저가 없을 경우 생성
+//서버 실행시 1회 관리자 유저가 없을 경우 생성
 exports.createInitAdmin = async () => {
   try {
     const adminExists = await User.findOne({ isAdmin: true });
@@ -102,30 +102,29 @@ exports.createInitAdmin = async () => {
       console.log("Admin user created");
     }
   } catch (error) {
-    console.error('Error creating admin user', error);
+    res.status(500).send('Login error');
   }
 };
 
-// 관리자가 일반 유저를 관리자 유저로 만들어주기.
+//관리자가 일반유저를 관리자 유저로 만들어주기.
 exports.updateUserToAdmin = async (req, res) => {
   const { id } = req.params;
   const { isAdmin } = req.body;
 
   try {
-    const user = await User.findById(id);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+      const user = await User.findById(id);
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
 
-    user.isAdmin = isAdmin;
-    await user.save();
-    res.json({ message: 'User admin status updated' });
+      user.isAdmin = isAdmin;
+      await user.save();
+      res.json({ message: 'User admin status updated' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+      res.status(500).json({ message: 'Server error' });
   }
 };
 
-// 특정 유저의 출석 상태 확인
 exports.checkAttendance = async (req, res) => {
   try {
     let absent = 0;
@@ -134,22 +133,39 @@ exports.checkAttendance = async (req, res) => {
       return res.status(404).send({ message: "사용자를 찾을 수 없습니다." });
     }
 
-    const attendances = await Attend.find({ 'user.userId': user._id });
+    const attendances = await Attend.find({ user: user });
     if (!attendances || attendances.length === 0) {
       return res.status(404).send({ message: "출석 정보가 없습니다." });
     }
 
+    const sessionIds = attendances.map(attendance => attendance.session);
+    const sessions = await Session.find({ _id: { $in: sessionIds } });
+
+    const sessionMap = sessions.reduce((map, session) => {
+      map[session._id] = session;
+      return map;
+    }, {});
+
     const updatedAttendances = attendances.map(attendance => {
-      let noCheck = 0;
-      attendance.attendList.forEach(attend => {
-        if (attend.status === false) {
-          noCheck += 1;
+      const session = sessionMap[attendance.session];
+      if (session) {
+        const updatedAttendance = {
+          ...attendance._doc, // 기존 attendance 객체의 복사본 생성
+          session_name: session.name,
+          session_date: session.date
+        };
+        let noCheck = 0;
+        attendance.attendList.forEach(attend => {
+          if (attend.status === false) {
+            noCheck += 1;
+          }
+        });
+        if (noCheck === 1) {
+          absent += 0.5;
+        } else if (noCheck >= 2) {
+          absent += 1;
         }
-      });
-      if (noCheck === 1) {
-        absent += 0.5;
-      } else if (noCheck >= 2) {
-        absent += 1;
+        return updatedAttendance;
       }
       return attendance;
     });
@@ -161,33 +177,33 @@ exports.checkAttendance = async (req, res) => {
   }
 };
 
-// 특정 유저의 출석 상태 업데이트
-exports.updateUserAttendance = async (req, res) => {
+
+exports.updateUserAttendance =  async (req, res) => {
   try {
-    const { userId, sessionId, attendIdx, status } = req.body;
+      const { userId, sessionId, attendIdx, status } = req.body;
 
-    // 해당하는 유저의 원하는 날의 세션 찾기
-    const attendance = await Attend.findOne({ 'user.userId': userId, 'session.sessionId': sessionId });
+      // 해당하는 유저의 원하는 날의 세션 찾기
+      const attendance = await Attend.findOne({ user: userId, session: sessionId });
 
-    if (!attendance) {
-      return res.status(404).json({ message: 'Attendance record not found' });
-    }
+      if (!attendance) {
+          return res.status(404).json({ message: 'Attendance record not found' });
+      }
 
-    // 해당 인덱스의 출석 찾기
-    const attendTime = attendance.attendList.find(time => time.attendIdx === attendIdx);
+      // 해당 인덱스의 출석 찾기
+      const attendTime = attendance.attendList.find(time => time.attendIdx === attendIdx);
 
-    if (!attendTime) {
-      return res.status(404).json({ message: 'Attendance entry not found' });
-    }
+      if (!attendTime) {
+          return res.status(404).json({ message: 'Attendance entry not found' });
+      }
 
-    // 상태 업데이트하기
-    attendTime.status = status;
+      // 상태 업데이트하기
+      attendTime.status = status;
 
-    // DB에 업데이트
-    await attendance.save();
+      // DB에 업데이트
+      await attendance.save();
 
-    res.status(200).json({ message: 'Attendance updated successfully', attendance });
+      res.status(200).json({ message: 'Attendance updated successfully', attendance });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+      res.status(500).json({ message: 'Server error', error });
   }
 };
