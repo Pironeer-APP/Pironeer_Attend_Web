@@ -177,6 +177,75 @@ exports.checkAttendance = async (req, res) => {
   }
 };
 
+exports.checkAttendanceSSE = async (req, res) => {
+  try {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    const sendAttendanceUpdate = async () => {
+      try {
+        let absent = 0;
+        const user = req.user; // Use user from authenticated request
+
+        const attendances = await Attend.find({ user: user });
+        if (!attendances || attendances.length === 0) {
+          return res.write(`event: error\ndata: ${JSON.stringify({ message: "출석 정보가 없습니다." })}\n\n`);
+        }
+
+        const sessionIds = attendances.map(attendance => attendance.session);
+        const sessions = await Session.find({ _id: { $in: sessionIds } });
+
+        const sessionMap = sessions.reduce((map, session) => {
+          map[session._id] = session;
+          return map;
+        }, {});
+
+        const updatedAttendances = attendances.map(attendance => {
+          const session = sessionMap[attendance.session];
+          if (session) {
+            const updatedAttendance = {
+              ...attendance._doc,
+              session_name: session.name,
+              session_date: session.date
+            };
+            let noCheck = 0;
+            attendance.attendList.forEach(attend => {
+              if (attend.status === false) {
+                noCheck += 1;
+              }
+            });
+            if (noCheck === 1) {
+              absent += 0.5;
+            } else if (noCheck >= 2) {
+              absent += 1;
+            }
+            return updatedAttendance;
+          }
+          return attendance;
+        });
+
+        res.write(`data: ${JSON.stringify({ message: "출석 정보가 확인되었습니다.", attendances: updatedAttendances, absent })}\n\n`);
+      } catch (error) {
+        console.error(error);
+        res.write(`event: error\ndata: ${JSON.stringify({ message: "출석 정보를 확인하는 중 오류가 발생했습니다." })}\n\n`);
+      }
+    };
+
+    sendAttendanceUpdate();
+
+    const intervalId = setInterval(sendAttendanceUpdate, 10000);
+
+    req.on('close', () => {
+      clearInterval(intervalId);
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "서버 오류가 발생했습니다." });
+  }
+};
+
 
 exports.updateUserAttendance =  async (req, res) => {
   try {
