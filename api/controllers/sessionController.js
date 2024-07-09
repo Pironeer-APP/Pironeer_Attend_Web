@@ -24,6 +24,8 @@ exports.createSession = async (req, res) => {
     const attendDocuments = users.map(user => ({
       user: user._id,
       session: session._id,
+      sessionName : session.name,
+      sessionDate : session.date,
       attendList: []
     }));
     
@@ -156,7 +158,8 @@ exports.isCheck = async (req, res) => {
     if (!token) {
       return res.status(404).send({ message: "출석 체크 진행중이 아닙니다." });
     }
-    res.status(200).send({ message: "출석체크 진행중", token: token});
+    const { code, ...tokenWithOutCode } = token;
+    res.status(200).send({ message: "출석체크 진행중", token: tokenWithOutCode});
   } catch (error) {
     console.error("출석 확인 중 오류가 발생했습니다", error);
     res.status(500).send({ message: "출석 확인 중 오류가 발생했습니다", error });
@@ -248,6 +251,17 @@ exports.getAllSessions = async (req, res) => {
   try {
     const sessions = await Session.find({});
     res.status(200).send(sessions);
+  } catch (error) {
+    res.status(500).send({ message: "세션을 가져오는 중 오류가 발생했습니다", error });
+  }
+};
+
+// 내 모든 출석 정보를 준다.
+exports.getAllAttends = async (req, res) => {
+  try {
+    user = req.user
+    const attends = await Attend.find({ user: user._id });
+    res.status(200).send(attends);
   } catch (error) {
     res.status(500).send({ message: "세션을 가져오는 중 오류가 발생했습니다", error });
   }
