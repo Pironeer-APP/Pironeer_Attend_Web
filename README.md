@@ -77,3 +77,11 @@ project
 ├── app.js
 ├── .env           # 환경변수 파일
 └── .gitignore     
+
+# API 개요
+
+이 API는 출석 관리 시스템을 위한 RESTful API입니다. 사용자, 세션, 출석 정보를 관리할 수 있습니다.
+
+## 인증 방법
+
+이 API는 JWT(JSON Web Token) 인증 방식을 사용합니다. 모든 요청에는 헤더에 토큰을 포함해야 합니다:

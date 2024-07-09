@@ -81,7 +81,7 @@ exports.login = async (req, res) => {
       return res.status(401).send("비밀번호 틀림");
     }
     const token = jwt.sign({ _id: user._id, _isAdmin: user.isAdmin }, JWT_SECRET, { expiresIn: "1h" });
-    res.json({ message: "Login successfully", token });
+    res.json({ message: "Login successfully", token : token, user : user });
   } catch (error) {
     res.status(500).send("Login error");
   }
