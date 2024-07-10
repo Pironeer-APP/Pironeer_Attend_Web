@@ -6,13 +6,19 @@ const attendSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true, // 유저는 필수 값으로 설정
-        index: true
     },
     session: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Session',
         required: true, // 세션은 필수 값으로 설정
-        index: true
+    },
+    sessionName:{
+      type: String,
+      required: true
+    },
+    sessionDate:{
+      type: Date,
+      required: true
     },
     attendList: [{
       attendIdx: {
