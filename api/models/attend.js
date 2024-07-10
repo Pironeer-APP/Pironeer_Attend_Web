@@ -7,6 +7,7 @@ const attendSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true, // 유저는 필수 값으로 설정
+      index: true,
     },
     // 유저 이름 
     userName: {
@@ -18,6 +19,7 @@ const attendSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Session',
       required: true, // 세션은 필수 값으로 설정
+      index:true,
     },
     // 세션 이름
     sessionName:{
