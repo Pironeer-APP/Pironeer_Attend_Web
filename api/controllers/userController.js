@@ -138,6 +138,7 @@ exports.checkAttendance = async (req, res) => {
       return res.status(404).send({ message: "출석 정보가 없습니다." });
     }
 
+    // 이 부분 주석 처리?
     const sessionIds = attendances.map(attendance => attendance.session);
     const sessions = await Session.find({ _id: { $in: sessionIds } });
 
@@ -169,6 +170,7 @@ exports.checkAttendance = async (req, res) => {
       }
       return attendance;
     });
+    //
 
     res.status(200).send({ message: "출석 정보가 확인되었습니다.", attendances: updatedAttendances, absent });
   } catch (error) {
