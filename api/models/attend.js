@@ -11,7 +11,7 @@ const attendSchema = new mongoose.Schema({
     // 유저 이름 
     userName: {
       type: String,
-      //required: true
+      required: true
     },
     // 세션 정보 - 'Session' 모델의 ObjectId를 참조
     session: {
