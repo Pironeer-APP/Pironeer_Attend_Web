@@ -42,7 +42,7 @@
 - **해결 방법**: 
   - 프론트측에서 필요한 정보를 추가로 전달 
   - 몽고디비의 특성을 고려하여 서버 측에서 추가 정보를 찾아 전달이 아닌 비정규화를 통해 해결
-  - attend모델에 userName, sessionName, sessionDate를 추가하여 마이그레이션 서버 로직 변경
+  - attend모델에 userName, sessionName, sessionDate를 추가하여 마이그레이션 및 서버 로직 변경
   - 기존 프론트와도 통신이 가능하도록 기존 모델에서 수정이 아닌 추가만 진행
   
 ### 해결 중인 문제
@@ -199,93 +199,7 @@ Method: POST
 
 }
 ```
-모든 사용자 조회
 
-URL: /user/users
-Method: GET
-설명: 모든 사용자 정보를 조회합니다. 관리자 권한이 필요합니다.
-헤더 예시:
-http
-코드 복사
-Authorization: Bearer YOUR_JWT_TOKEN
-응답 예시:
-json
-코드 복사
-[
-  {
-    "id": "user_id1",
-    "username": "exampleuser1",
-    "email": "user1@example.com"
-  },
-  {
-    "id": "user_id2",
-    "username": "exampleuser2",
-    "email": "user2@example.com"
-  }
-]
-특정 사용자 조회
-
-URL: /user/users/:id
-Method: GET
-설명: 특정 사용자 정보를 조회합니다. JWT 인증이 필요합니다.
-헤더 예시:
-http
-코드 복사
-Authorization: Bearer YOUR_JWT_TOKEN
-응답 예시:
-json
-코드 복사
-{
-  "id": "user_id",
-  "username": "exampleuser",
-  "email": "user@example.com"
-}
-세션 엔드포인트
-세션 생성
-
-URL: /session/createSession
-Method: POST
-설명: 새로운 세션을 생성합니다. 관리자 권한이 필요합니다.
-요청 예시:
-json
-코드 복사
-{
-  "name": "Session 1",
-  "date": "2023-07-09T10:00:00Z"
-}
-응답 예시:
-json
-코드 복사
-{
-  "message": "세션이 성공적으로 생성되었습니다",
-  "session": {
-    "id": "session_id",
-    "name": "Session 1",
-    "date": "2023-07-09T10:00:00Z"
-  }
-}
-출석 체크 시작
-
-URL: /session/startAttendCheck/:id
-Method: POST
-설명: 특정 세션에 대한 출석 체크를 시작합니다. 관리자 권한이 필요합니다.
-헤더 예시:
-http
-코드 복사
-Authorization: Bearer YOUR_JWT_TOKEN
-응답 예시:
-json
-코드 복사
-{
-  "message": "출석 체크가 시작되었습니다",
-  "code": "attendance_code",
-  "attendIdx": 1
-}
-에러 처리
-401 Unauthorized: 인증 실패 또는 토큰 없음
-403 Forbidden: 토큰 무효 또는 권한 없음
-404 Not Found: 리소스를 찾을 수 없음
-500 Internal Server Error: 서버 내부 오류
 정의된 스키마
 User
 
