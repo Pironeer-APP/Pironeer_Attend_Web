@@ -155,10 +155,13 @@ const AttendanceTokenCache = {
     }
     return null;
   },
+
+  // 유저가 출석체크 했는지 확인
   isCheckedByUser(userId,attendIdx){
     attendList = this.attendCache.find(attend => attend.user.toString() == userId).attendList
     return attendList.find(obj => obj.attendIdx == attendIdx).status
   },
+
   // 현재 출석 캐시 반환 함수
   attendsCache() {
     return this.attendCache;
