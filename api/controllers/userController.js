@@ -131,11 +131,12 @@ exports.checkAttendance = async (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-
+    res.flushHeaders();
+    
     const sendAttendanceUpdate = async () => {
       try {
         let absent = 0;
-        const user = req.user; // Use user from authenticated request
+        const user = req.user; // JWT 토큰에서 사용자 정보 가져오기
 
         const attendances = await Attend.find({ user: user });
         if (!attendances || attendances.length === 0) {

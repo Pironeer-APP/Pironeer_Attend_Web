@@ -3,12 +3,14 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const api = require("./api/routers/index");
 const { createInitAdmin } = require("./api/controllers/userController");
-
+DEV_ORIGIN= "http://localhost:3001"
+PROD_ORIGIN= "http://3.38.96.3:3000/api"
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:3001'
+  // origin: DEV_ORIGIN
 }));
+
 app.use(express.json());
 
 app.use("/api", api);
