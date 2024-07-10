@@ -29,6 +29,8 @@ router.post('/signup/send', emailConfig.sendEmail);
 router.post('/signup/cert', emailConfig.certEmail);
 // 출석 정보 확인 edited by 진혁
 router.get('/checkAttendance/:id', authenticateToken, userController.checkAttendance);
+
+router.post('/users/spreadsheets', authenticateToken, adminMiddleware, userController.spreadsheets);
 module.exports = router;
 /**
  * @swagger
@@ -112,7 +114,19 @@ module.exports = router;
  *          description: "인증 실패"
  *        500:
  *          description: "서버 오류"
- *  
+ *  /api/user/users/spreadsheets:
+ *   post:
+ *     summary: Record usernames to Google Sheets
+ *     description: Retrieve all users' usernames and record them to a specified Google Spreadsheet. Requires authentication and admin privileges.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Usernames recorded successfully
+ *       500:
+ *         description: Error recording usernames
+ *
  *  /api/user/users:
  *    get:
  *      summary: "모든 유저 조회"

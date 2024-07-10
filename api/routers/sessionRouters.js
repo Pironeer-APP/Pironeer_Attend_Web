@@ -33,7 +33,11 @@ router.delete('/endAttendCheck',authenticateToken,adminMiddleware, sessionContro
 
 // 세션 삭제 (어드민 인증 필요)
 router.delete('/deleteSession/:sessionId', authenticateToken, adminMiddleware, sessionController.deleteSession);
-
+router.get('/attendance/spreadsheets', authenticateToken,adminMiddleware, sessionController.spreadsheets);
+router.post('/sessions/:id/spreadsheets', authenticateToken,adminMiddleware,sessionController.sessionToSpreadsheet);
+router.post('/sessions/:id/spreadsheets/1', authenticateToken,adminMiddleware,sessionController.firstSessionToSpreadsheet);
+router.post('/sessions/:id/spreadsheets/2', authenticateToken,adminMiddleware,sessionController.secondSessionToSpreadsheet);
+router.post('/sessions/:id/spreadsheets/3', authenticateToken,adminMiddleware,sessionController.thirdSessionToSpreadsheet);
 module.exports = router;
 
 /**
@@ -47,6 +51,90 @@ module.exports = router;
 
 /**
  * @swagger
+ * /api/session/sessions/{id}/spreadsheets:
+ *   post:
+ *     summary: "특정 세션의 출석 정보를 Google 스프레드시트로 내보냅니다"
+ *     tags: [Sessions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: "id"
+ *         in: "path"
+ *         required: true
+ *         schema:
+ *           type: "string"
+ *         description: "세션 ID"
+ *     responses:
+ *       200:
+ *         description: "성공적으로 출석 데이터를 내보냈습니다"
+ *       404:
+ *         description: "세션을 찾을 수 없습니다"
+ *       500:
+ *         description: "출석 데이터를 내보내는 중 오류가 발생했습니다"
+ * 
+ * /api/session/sessions/{id}/spreadsheets/1:
+ *   post:
+ *     summary: "특정 세션의 출석 정보를 Google 스프레드시트로 내보냅니다"
+ *     tags: [Sessions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: "id"
+ *         in: "path"
+ *         required: true
+ *         schema:
+ *           type: "string"
+ *         description: "세션 ID"
+ *     responses:
+ *       200:
+ *         description: "성공적으로 출석 데이터를 내보냈습니다"
+ *       404:
+ *         description: "세션을 찾을 수 없습니다"
+ *       500:
+ *         description: "출석 데이터를 내보내는 중 오류가 발생했습니다"
+ * 
+ * /api/session/sessions/{id}/spreadsheets/2:
+ *   post:
+ *     summary: "특정 세션의 출석 정보를 Google 스프레드시트로 내보냅니다"
+ *     tags: [Sessions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: "id"
+ *         in: "path"
+ *         required: true
+ *         schema:
+ *           type: "string"
+ *         description: "세션 ID"
+ *     responses:
+ *       200:
+ *         description: "성공적으로 출석 데이터를 내보냈습니다"
+ *       404:
+ *         description: "세션을 찾을 수 없습니다"
+ *       500:
+ *         description: "출석 데이터를 내보내는 중 오류가 발생했습니다"
+ * 
+ * /api/session/sessions/{id}/spreadsheets/3:
+ *   post:
+ *     summary: "특정 세션의 출석 정보를 Google 스프레드시트로 내보냅니다"
+ *     tags: [Sessions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: "id"
+ *         in: "path"
+ *         required: true
+ *         schema:
+ *           type: "string"
+ *         description: "세션 ID"
+ *     responses:
+ *       200:
+ *         description: "성공적으로 출석 데이터를 내보냈습니다"
+ *       404:
+ *         description: "세션을 찾을 수 없습니다"
+ *       500:
+ *         description: "출석 데이터를 내보내는 중 오류가 발생했습니다"
+ * 
  * /api/session/createSession:
  *   post:
  *     summary: 새로운 세션 생성
@@ -313,6 +401,19 @@ module.exports = router;
  *                   example: "출석 체크가 진행 중이 아닙니다."
  *       500:
  *         description: 서버 오류
+ * /api/session/attendance/spreadsheets:
+ *   get:
+ *     summary: Record attendance data to Google Sheets
+ *     description: Records attendance data to a specified Google Spreadsheet. Requires authentication and admin privileges.
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Attendance
+ *     responses:
+ *       200:
+ *         description: Attendance recorded successfully
+ *       500:
+ *         description: Error recording attendance
  */
 
 /**
