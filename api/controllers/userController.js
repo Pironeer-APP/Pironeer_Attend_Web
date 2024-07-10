@@ -4,6 +4,9 @@ const Session = require('../models/session')
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const { google } = require('googleapis');
+require('dotenv').config();
+
 // JWT 비밀키
 const JWT_SECRET = "piro";
 
@@ -202,8 +205,41 @@ exports.updateUserAttendance =  async (req, res) => {
       // DB에 업데이트
       await attendance.save();
 
-      res.status(200).json({ message: 'Attendance updated successfully', attendance });
+      res.status(200).send('성공적으로 데이터를 옮겼습니다.');
   } catch (error) {
-      res.status(500).json({ message: 'Server error', error });
+    console.error('데이터를 옮기는데 실패했습니다', error);
+    res.status(500).send('데이터를 옮기는데 실패했습니다');
+  }
+};
+
+const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
+const KEYFILE_PATH = process.env.KEYFILE_PATH;
+
+const auth = new google.auth.GoogleAuth({
+    keyFile: KEYFILE_PATH,
+    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+});
+
+const sheets = google.sheets({ version: 'v4', auth });
+
+exports.spreadsheets = async (req, res) => {
+  try {
+      const sheets = google.sheets({ version: 'v4', auth });
+      
+      const users = await User.find({}, 'username');
+      const values = users.map(user => [user.username]);
+      
+      const response = await sheets.spreadsheets.values.append({
+          spreadsheetId: SPREADSHEET_ID,
+          range: 'Sheet1!A2', // 데이터를 추가할 범위를 설정하세요.
+          valueInputOption: 'RAW',
+          resource: {
+              values
+          }
+      });
+      res.status(200).send('성공적으로 데이터를 옮겼습니다.');
+  } catch (error) {
+    console.error('데이터를 옮기는데 실패했습니다', error);
+    res.status(500).send('데이터를 옮기는데 실패했습니다');
   }
 };
