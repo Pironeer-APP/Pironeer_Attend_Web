@@ -29,8 +29,9 @@ router.post('/signup/send', emailConfig.sendEmail);
 router.post('/signup/cert', emailConfig.certEmail);
 // 출석 정보 확인 edited by 진혁
 router.get('/checkAttendance/:id', authenticateToken, userController.checkAttendance);
-
 router.post('/users/spreadsheets', authenticateToken, adminMiddleware, userController.spreadsheets);
+//SSE 구현
+router.get('/events/:id', authenticateToken, userController.checkAttendance);
 module.exports = router;
 /**
  * @swagger

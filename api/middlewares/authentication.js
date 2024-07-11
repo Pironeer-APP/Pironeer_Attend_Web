@@ -2,12 +2,19 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const SECRET_KEY = "piro"; // 나중에 환경 파일
 
+
 // JWT 검증 미들웨어
 const authenticateToken = async (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  let token;
 
-  if (token == null) return res.sendStatus(401); // 토큰 없음
+  const authHeader = req.headers["authorization"];
+  if (authHeader) {
+    token = authHeader.split(" ")[1];
+  } else if (req.query.token) {
+    token = req.query.token;
+  }
+
+  if (!token) return res.sendStatus(401); // 토큰 없음
 
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
