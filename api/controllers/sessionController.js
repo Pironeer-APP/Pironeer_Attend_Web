@@ -493,6 +493,7 @@ exports.secondSessionToSpreadsheet = async (req, res) => {
     res.status(500).send('데이터를 옮기는데 실패했습니다');
   }
 };
+
 exports.thirdSessionToSpreadsheet = async (req, res) => {
   try {
     const sheets = google.sheets({ version: 'v4', auth });
