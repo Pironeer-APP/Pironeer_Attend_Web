@@ -235,5 +235,8 @@ Attend
       "status": true
     }
   ]
+  "userName": "user_name",
+  "sessionName" : "session_name",
+  "sessionDate" : "session_date"
 }
 ```
