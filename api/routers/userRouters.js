@@ -31,7 +31,6 @@ router.post('/signup/cert', emailConfig.certEmail);
 router.get('/checkAttendance/:id', authenticateToken, userController.ShowCheckAttendance);
 router.post('/users/spreadsheets', authenticateToken, adminMiddleware, userController.spreadsheets);
 //SSE 구현
-router.get('/events/:id', authenticateToken, userController.checkAttendance);
 module.exports = router;
 /**
  * @swagger
