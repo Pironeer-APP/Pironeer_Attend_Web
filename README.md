@@ -137,6 +137,21 @@
     ```
   </div>
   <div>
+    출석 체크 진행 여부 확인 (SSE)
+    엔드포인트: GET /isCheckAttend
+    설명: 출석 체크 진행 여부를 확인 후 진행 중인 경우 즉시 응답을 받습니다. 진행 중이 아닌 경우, SSE를 통해 서버와 연결을 유지하며 출석 체크가 시작되면 이벤트 메시지를 수신합니다.
+    인증: authenticateToken
+    컨트롤러 메서드: sessionController.isCheckAttendSSE
+
+    <h3>요청 예시</h3>
+    
+        ```http
+            GET /api/session/isCheckAttend HTTP/1.1
+            Host: example.com
+            Authorization: Bearer {token}
+        ```
+  </div>
+  <div>
     <h3> 응답 예시 </h3>
   <ul>
   <li>
