@@ -60,6 +60,7 @@
   <summary>상세 설명</summary>
   <div>
     ```javascript
+
       // 출석체크 진행여부를 sse로 관리
       // 이벤트를 클라이언트 마다 확인하는 게 아닌 서버에서 1초마다 확인해 이벤트 발생 시 일괄로 처리
 
@@ -138,7 +139,7 @@
   <div>
     <h3> 응답 예시 </h3>
     1. 출석 체크가 이미 진행 중인 경우
-      ```json
+      ```
       {
         "message": "출석체크 진행중",
         "token": {
@@ -149,12 +150,15 @@
         "isChecked": true
       }
       ```
+
     2. 출석 체크가 진행 중이지 않은 경우
     출석 체크가 시작시 다음과 같은 SSE 메시지를 수신
+      
+      ```plaintext
 
-    ```plaintext
-    data: {"message":"출석체크 진행중","token":{"sessionId": "string","attendIdx": 0,"expireAt": 0},"isChecked":false}
-    ```  
+      data: {"message":"출석체크 진행중","token":{"sessionId": "string","attendIdx": 0,"expireAt": 0},"isChecked":false}
+      ```
+
   </div>
 </details>
 
