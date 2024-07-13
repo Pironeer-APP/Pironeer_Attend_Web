@@ -138,30 +138,30 @@
   </div>
   <div>
     <h3> 응답 예시 </h3>
-    <ul>
-      <li>
+  <ul>
+  <li>
       1. 출석 체크가 이미 진행 중인 경우
+        
+        ```json
+          {
+            "message": "출석체크 진행중",
+            "token": {
+              "sessionId": "string",
+              "attendIdx": 0,
+              "expireAt": 0
+            },
+            "isChecked": true
+          }
+        ```
       
-      ```json
-        {
-          "message": "출석체크 진행중",
-          "token": {
-            "sessionId": "string",
-            "attendIdx": 0,
-            "expireAt": 0
-          },
-          "isChecked": true
-        }
-      ```
-      
-      <li>
+  <li>
       2. 출석 체크가 진행 중이지 않은 경우
       출석 체크가 시작시 다음과 같은 SSE 메시지를 수신
 
       ```plaintext
         data: {"message":"출석체크 진행중","token":{"sessionId": "string","attendIdx": 0,"expireAt": 0},"isChecked":false}
       ```
-    </ul>
+  </ul>
   </div>
 </details>
 
