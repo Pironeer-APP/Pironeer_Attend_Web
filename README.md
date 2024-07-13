@@ -59,8 +59,8 @@
 <details markdown="1">
   <summary>상세 설명</summary>
   <div>
-    ```javascript
-    
+      
+      ```javascript
       // 출석체크 진행여부를 sse로 관리
       // 이벤트를 클라이언트 마다 확인하는 게 아닌 서버에서 1초마다 확인해 이벤트 발생 시 일괄로 처리
 
