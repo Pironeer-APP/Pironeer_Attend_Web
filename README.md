@@ -160,11 +160,11 @@
           {
             "message": "출석체크 진행중",
             "token": {
-              "sessionId": "string",
-              "attendIdx": 0,
-              "expireAt": 0
+              "sessionId": "6692281992e544d92889c833",
+              "attendIdx": "1",
+              "expireAt": 1720856397502
             },
-            "isChecked": true
+            "isChecked": false
           }
         ```
       
@@ -173,7 +173,7 @@
       출석 체크가 시작시 다음과 같은 SSE 메시지를 수신
 
       ```plaintext
-        data: {"message":"출석체크 진행중","token":{"sessionId": "string","attendIdx": 0,"expireAt": 0},"isChecked":false}
+        data: {"message":"출석체크 진행중","token":{"sessionId":"6692281992e544d92889c833","attendIdx":"1","expireAt":1720856397502},"isChecked":false}
       ```
   </ul>
   </div>
