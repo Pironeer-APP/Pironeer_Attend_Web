@@ -26,7 +26,7 @@ router.post('/restartAttendCheck/:sessionId/:attendIdx', authenticateToken,admin
 router.get('/isCheck', sessionController.isCheck);
 
 // 출석체크 진행여부
-router.get('/isCheckAttend', authenticateToken, sessionController.isCheckAttend);
+router.get('/isCheckAttend', authenticateToken, sessionController.isCheckAttendSSE);
 
 // 출석 체크 조기 종료
 router.delete('/endAttendCheck',authenticateToken,adminMiddleware, sessionController.endAttendCheck);

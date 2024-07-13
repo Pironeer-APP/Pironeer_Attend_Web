@@ -170,23 +170,79 @@ exports.isCheck = async (req, res) => {
   }
 };
 
-// 출석체크 진행여부
-exports.isCheckAttend = async (req, res) => {
+// 출석체크 진행여부를 sse로 관리
+// 이벤트를 클라이언트 마다 확인하는 게 아닌 서버에서 1초마다 확인해 이벤트 발생 시 일괄로 처리
+
+// 연결 중인 클라이언트를 관리하는 배열
+let clients = [];
+
+// 클라이언트에 SSE 메시지 전송
+const sendSSE = (client, data) => {
+  client.res.write(`data: ${JSON.stringify(data)}\n\n`);
+};
+
+// 모든 클라이언트에 SSE 메시지 전송
+const broadcastSSE = (data) => {
+  clients.forEach(client => sendSSE(client, data));
+  // 모든 클라이언트와의 연결을 종료
+  clients.forEach(client => client.res.end());
+  // 클라이언트 목록 초기화
+  clients = [];
+};
+
+// 출석 체크 진행 여부 확인 API(페이지 접속시 api)
+// 클라이언트 연결을 clients배열로 추적하여 관리
+exports.isCheckAttendSSE = async (req, res) => {
   try {
-    const token = AttendanceTokenCache.nowToken()
-    if (!token) {
-      return res.status(404).send({ message: "출석 체크 진행중이 아닙니다." });
+    const token = AttendanceTokenCache.nowToken();
+    const user = req.user
+    if (token) {
+      // 출석 체크가 이미 진행 중인 경우 즉시 응답하고 연결 종료
+      // 코드 부분만 제거
+      const { code, ...tokenWithOutCode } = token;
+      const userCheckedStatus = AttendanceTokenCache.isCheckedByUser(user.id,token.attendIdx)
+      return res.status(200).send({ message: "출석체크 진행중", token: tokenWithOutCode, isChecked : userCheckedStatus});
     }
-    // 코드 부분만 제거
-    const { code, ...tokenWithOutCode } = token;
-    user = req.user
-    userCheckedStatus = AttendanceTokenCache.isCheckedByUser(user.id,token.attendIdx)
-    res.status(200).send({ message: "출석체크 진행중", token: tokenWithOutCode, isChecked : userCheckedStatus});
+
+    // SSE 헤더 설정
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    // 클라이언트 목록에 추가
+    const clientId = user.id;
+    clients.push({ id: clientId, res });
+    console.log(`Client connected: ${clientId}`);
+
+    // 클라이언트가 연결 종료(페이지 종료,네트워크 문제)시 목록에서 제거
+    req.on('close', () => {
+      clients = clients.filter(client => client.id !== clientId);
+      console.log(`Client disconnected: ${clientId}`);
+    });
+
   } catch (error) {
     console.error("출석 확인 중 오류가 발생했습니다", error);
-    res.status(500).send({ message: "출석 확인 중 오류가 발생했습니다", error });
+    res.status(500).json({ message: "출석 확인 중 오류가 발생했습니다", error });
   }
 };
+
+// 특정 이벤트 발생 시 호출되는 함수
+const checkForNewAttendance = async () => {
+  const newToken = AttendanceTokenCache.nowToken();
+  if (newToken) { // 새로운 출석 정보가 추가되었는지 확인
+    const { code, ...newTokenWithOutCode } = newToken;
+    const data = {
+      message: "출석체크 진행중",
+      token: newTokenWithOutCode,
+      isChecked : false,
+    };
+    broadcastSSE(data); // 모든 클라이언트에 메시지 전송 및 연결 종료
+  }
+};
+
+// 1초마다 출석 체크 여부 확인
+setInterval(checkForNewAttendance, 1000);
 
 // 출석체크 진행 함수
 // 캐시의 코드와 본문의 코드를 비교 후 캐시에 저장

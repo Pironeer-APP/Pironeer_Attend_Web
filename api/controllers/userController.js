@@ -128,7 +128,8 @@ exports.updateUserToAdmin = async (req, res) => {
   }
 };
 
-exports.checkAttendance = async (req, res) => {
+// 출석 기록을 모두 전달하는 컨트롤러
+exports.ShowCheckAttendance = async (req, res) => {
   try {
     let absent = 0;
     const user = await User.findById(req.params.id);
@@ -180,21 +181,6 @@ exports.checkAttendance = async (req, res) => {
     res.status(500).send({ message: "출석 정보를 확인하는 중 오류가 발생했습니다." });
   }
 };
-
-exports.checkAttendanceSSE = async (req, res) => {
-  try {
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.flushHeaders();
-    
-    
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({ message: "서버 오류가 발생했습니다." });
-  }
-};
-
 
 exports.updateUserAttendance =  async (req, res) => {
   try {
