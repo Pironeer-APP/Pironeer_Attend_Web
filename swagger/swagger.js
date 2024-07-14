@@ -11,7 +11,7 @@ const options = {
     },
     servers: [
       {
-        url: "https://piro-recruiting.top", // Adjust this to your server address
+        url: "/", // Adjust this to your server address
         description: "api server",
       },
     ],

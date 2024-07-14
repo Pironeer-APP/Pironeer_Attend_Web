@@ -128,79 +128,59 @@ exports.updateUserToAdmin = async (req, res) => {
   }
 };
 
-
-exports.checkAttendance = async (req, res) => {
+// 출석 기록을 모두 전달하는 컨트롤러
+exports.ShowCheckAttendance = async (req, res) => {
   try {
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.flushHeaders();
-    
-    const sendAttendanceUpdate = async () => {
-      try {
-        let absent = 0;
-        const user = req.user; // JWT 토큰에서 사용자 정보 가져오기
+    let absent = 0;
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).send({ message: "사용자를 찾을 수 없습니다." });
+    }
 
-        const attendances = await Attend.find({ user: user });
-        if (!attendances || attendances.length === 0) {
-          return res.write(`event: error\ndata: ${JSON.stringify({ message: "출석 정보가 없습니다." })}\n\n`);
-        }
+    const attendances = await Attend.find({ user: user });
+    if (!attendances || attendances.length === 0) {
+      return res.status(404).send({ message: "출석 정보가 없습니다." });
+    }
 
     // 이 부분 주석 처리?
     const sessionIds = attendances.map(attendance => attendance.session);
     const sessions = await Session.find({ _id: { $in: sessionIds } });
 
-        const sessionMap = sessions.reduce((map, session) => {
-          map[session._id] = session;
-          return map;
-        }, {});
+    const sessionMap = sessions.reduce((map, session) => {
+      map[session._id] = session;
+      return map;
+    }, {});
 
-        const updatedAttendances = attendances.map(attendance => {
-          const session = sessionMap[attendance.session];
-          if (session) {
-            const updatedAttendance = {
-              ...attendance._doc,
-              session_name: session.name,
-              session_date: session.date
-            };
-            let noCheck = 0;
-            attendance.attendList.forEach(attend => {
-              if (attend.status === false) {
-                noCheck += 1;
-              }
-            });
-            if (noCheck === 1) {
-              absent += 0.5;
-            } else if (noCheck >= 2) {
-              absent += 1;
-            }
-            return updatedAttendance;
+    const updatedAttendances = attendances.map(attendance => {
+      const session = sessionMap[attendance.session];
+      if (session) {
+        const updatedAttendance = {
+          ...attendance._doc, // 기존 attendance 객체의 복사본 생성
+          session_name: session.name,
+          session_date: session.date
+        };
+        let noCheck = 0;
+        attendance.attendList.forEach(attend => {
+          if (attend.status === false) {
+            noCheck += 1;
           }
-          return attendance;
         });
-
-        res.write(`data: ${JSON.stringify({ message: "출석 정보가 확인되었습니다.", attendances: updatedAttendances, absent })}\n\n`);
-      } catch (error) {
-        console.error(error);
-        res.write(`event: error\ndata: ${JSON.stringify({ message: "출석 정보를 확인하는 중 오류가 발생했습니다." })}\n\n`);
+        if (noCheck === 1) {
+          absent += 0.5;
+        } else if (noCheck >= 2) {
+          absent += 1;
+        }
+        return updatedAttendance;
       }
-    };
-
-    sendAttendanceUpdate();
-
-    const intervalId = setInterval(sendAttendanceUpdate, 10000);
-
-    req.on('close', () => {
-      clearInterval(intervalId);
+      return attendance;
     });
-    //
 
+    res.status(200).send({ message: "출석 정보가 확인되었습니다.", attendances: updatedAttendances, absent });
   } catch (error) {
     console.error(error);
-    res.status(500).send({ message: "서버 오류가 발생했습니다." });
+    res.status(500).send({ message: "출석 정보를 확인하는 중 오류가 발생했습니다." });
   }
 };
-
 
 exports.updateUserAttendance =  async (req, res) => {
   try {

@@ -26,7 +26,7 @@ router.post('/restartAttendCheck/:sessionId/:attendIdx', authenticateToken,admin
 router.get('/isCheck', sessionController.isCheck);
 
 // 출석체크 진행여부
-router.get('/isCheckAttend', authenticateToken, sessionController.isCheckAttend);
+router.get('/isCheckAttend', authenticateToken, sessionController.isCheckAttendSSE);
 
 // 출석 체크 조기 종료
 router.delete('/endAttendCheck',authenticateToken,adminMiddleware, sessionController.endAttendCheck);
@@ -362,33 +362,22 @@ module.exports = router;
  * 
  * /api/session/isCheckAttend:
  *   get:
- *     summary: 출석 체크 진행 여부 확인
+ *     summary: 출석 체크 진행 여부 확인 (SSE)
  *     tags: [Attendance]
  *     security:
  *       - bearerAuth: []
+ *     produces:
+ *       - text/event-stream
  *     responses:
  *       200:
- *         description: 출석 체크가 진행 중임
+ *         description: 출석 체크 중일 경우 즉시 응답.
+ *                      진행 중이 아닐 경우 기다렸다가 시작시 이벤트 메세지 전송
  *         content:
- *           application/json:
+ *           text/event-stream:
  *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: "출석 체크가 진행 중입니다."
- *                 token:
- *                   type: object
- *                   properties:
- *                     sessionId:
- *                       type: string
- *                     attendIdx:
- *                       type: integer
- *                     expireAt:
- *                       type: integer
- *                 isChecked:
- *                      type: boolean
- *                      example: true
+ *               type: string
+ *               example: |
+ *                 data: {"message":"출석체크 진행중","token":{"attendIdx":123,"someOtherData":"example"},"isChecked":false}
  *       404:
  *         description: 출석 체크가 진행 중이 아님
  *         content:
@@ -401,6 +390,7 @@ module.exports = router;
  *                   example: "출석 체크가 진행 중이 아닙니다."
  *       500:
  *         description: 서버 오류
+ *
  * /api/session/attendance/spreadsheets:
  *   get:
  *     summary: Record attendance data to Google Sheets

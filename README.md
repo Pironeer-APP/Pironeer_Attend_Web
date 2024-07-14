@@ -45,6 +45,140 @@
   - attend모델에 userName, sessionName, sessionDate를 추가하여 마이그레이션 및 서버 로직 변경
   - 기존 프론트와도 통신이 가능하도록 기존 모델에서 수정이 아닌 추가만 진행
   
+### 문제 4: http폴링을 sse 방식으로 변경
+- **원인 분석**: 
+  - 기존 http 폴링 방식은 1초마다 요청을 보내고 응답을 받았음. 부하를 줄이기 위해 디비 최소화를 하고, 프론트 쪽 2분 제한을 두어 부하는 거의 없음
+  - 하지만 효율적으로 느껴지지 않았고 클라이언트가 지속적으로 응답을 받기에 콘솔창이 너무 더러움.... 
+- **해결 방법**: 
+  - http폴링 방식 대신 sse방식으로 서버에서 이벤트 발생 시 일괄적으로 메세지를 전송 
+  - **구현중 문제**: sse구현 과정에서 클라이언트 연결을 별개로 관리 시 연결 마다 이벤트 큐에 등록이 됨 
+    - 이 경우 클라이언트 수만큼 큐에 중복된 이벤트가 등록이 됨
+    - **해결 방법**: 
+      - 클라이언트 연결을 관리하는 배열을 만듬 
+      - 이벤트를 일괄로 1초마다 확인하여 이벤트 발생시 배열 내의(즉, 연결 중인 모든 클라이언트)에게 메세지를 보냄
+<details markdown="1">
+  <summary>상세 설명</summary>
+  <div>
+      
+      ```javascript
+      // 출석체크 진행여부를 sse로 관리
+      // 이벤트를 클라이언트 마다 확인하는 게 아닌 서버에서 1초마다 확인해 이벤트 발생 시 일괄로 처리
+
+      // 연결 중인 클라이언트를 관리하는 배열
+      let clients = [];
+
+      // 클라이언트에 SSE 메시지 전송
+      const sendSSE = (client, data) => {
+        client.res.write(`data: ${JSON.stringify(data)}\n\n`);
+      };
+
+      // 모든 클라이언트에 SSE 메시지 전송
+      const broadcastSSE = (data) => {
+        clients.forEach(client => sendSSE(client, data));
+        // 모든 클라이언트와의 연결을 종료
+        clients.forEach(client => client.res.end());
+        // 클라이언트 목록 초기화
+        clients = [];
+      };
+
+      // 출석 체크 진행 여부 확인 API(페이지 접속시 api)
+      // 클라이언트 연결을 clients배열로 추적하여 관리
+      exports.isCheckAttendSSE = async (req, res) => {
+        try {
+          const token = AttendanceTokenCache.nowToken();
+          const user = req.user
+          if (token) {
+            // 출석 체크가 이미 진행 중인 경우 즉시 응답하고 연결 종료
+            // 코드 부분만 제거
+            const { code, ...tokenWithOutCode } = token;
+            const userCheckedStatus = AttendanceTokenCache.isCheckedByUser(user.id,token.attendIdx)
+            return res.status(200).send({ message: "출석체크 진행중", token: tokenWithOutCode, isChecked : userCheckedStatus});
+          }
+
+          // SSE 헤더 설정
+          res.setHeader('Content-Type', 'text/event-stream');
+          res.setHeader('Cache-Control', 'no-cache');
+          res.setHeader('Connection', 'keep-alive');
+          res.flushHeaders();
+
+          // 클라이언트 목록에 추가
+          const clientId = user.id;
+          clients.push({ id: clientId, res });
+          console.log(`Client connected: ${clientId}`);
+
+          // 클라이언트가 연결 종료(페이지 종료,네트워크 문제)시 목록에서 제거
+          req.on('close', () => {
+            clients = clients.filter(client => client.id !== clientId);
+            console.log(`Client disconnected: ${clientId}`);
+          });
+
+        } catch (error) {
+          console.error("출석 확인 중 오류가 발생했습니다", error);
+          res.status(500).json({ message: "출석 확인 중 오류가 발생했습니다", error });
+        }
+      };
+
+      // 특정 이벤트 발생 시 호출되는 함수
+      const checkForNewAttendance = async () => {
+        const newToken = AttendanceTokenCache.nowToken();
+        if (newToken) { // 새로운 출석 정보가 추가되었는지 확인
+          const { code, ...newTokenWithOutCode } = newToken;
+          const data = {
+            message: "출석체크 진행중",
+            token: newTokenWithOutCode,
+            isChecked : false,
+          };
+          broadcastSSE(data); // 모든 클라이언트에 메시지 전송 및 연결 종료
+        }
+      };
+
+      // 1초마다 출석 체크 여부 확인
+      setInterval(checkForNewAttendance, 1000);
+    ```
+  </div>
+  <div>
+    <h1>출석 체크 진행 여부 확인 (SSE) </h1> <br>
+    엔드포인트: GET /isCheckAttend <br>
+    설명: 출석 체크 진행 여부를 확인 후 진행 중인 경우 즉시 응답을 받습니다. 진행 중이 아닌 경우, SSE를 통해 서버와 연결을 유지하며 출석 체크가 시작되면 이벤트 메시지를 수신합니다. <br>
+    인증: authenticateToken <br>
+    컨트롤러 메서드: sessionController.isCheckAttendSSE <br>
+    <h3>요청 예시</h3>
+    
+        ```http
+            GET /api/session/isCheckAttend HTTP/1.1
+            Host: example.com
+            Authorization: Bearer {token}
+        ```
+  </div>
+  <div>
+    <h3> 응답 예시 </h3>
+  <ul>
+  <li>
+      1. 출석 체크가 이미 진행 중인 경우
+        
+        ```json
+          {
+            "message": "출석체크 진행중",
+            "token": {
+              "sessionId": "6692281992e544d92889c833",
+              "attendIdx": "1",
+              "expireAt": 1720856397502
+            },
+            "isChecked": false
+          }
+        ```
+      
+  <li>
+      2. 출석 체크가 진행 중이지 않은 경우
+      출석 체크가 시작시 다음과 같은 SSE 메시지를 수신
+
+      ```plaintext
+        data: {"message":"출석체크 진행중","token":{"sessionId":"6692281992e544d92889c833","attendIdx":"1","expireAt":1720856397502},"isChecked":false}
+      ```
+  </ul>
+  </div>
+</details>
+
 ### 해결 중인 문제
 1. HTTP 폴링 대신에 SSE 적용으로 더 빠르게
 2. 10분간의 출석 진행 중에 자신이 출석했는지를 확인하는 API 구성 -> 이는 폴링으로 할 시 유저를 식별해야 하므로 SSE 구현 후
@@ -234,6 +368,9 @@ Attend
       "attendIdx": 1,
       "status": true
     }
-  ]
+  ],
+  "userName": "user_name",
+  "sessionName" : "session_name",
+  "sessionDate" : "session_date"
 }
 ```
