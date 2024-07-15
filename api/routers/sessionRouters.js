@@ -23,7 +23,7 @@ router.post('/checkAttend/:userId', authenticateToken, sessionController.checkAt
 router.post('/restartAttendCheck/:sessionId/:attendIdx', authenticateToken,adminMiddleware, sessionController.restartAttendCheckBySession);
 
 // 출석체크 진행여부
-router.get('/isCheck', sessionController.isCheck);
+router.get('/isCheck', authenticateToken,sessionController.isCheck);
 
 // 출석체크 진행여부
 router.get('/isCheckAttend', authenticateToken, sessionController.isCheckAttendSSE);
