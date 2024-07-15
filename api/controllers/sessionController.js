@@ -162,8 +162,12 @@ exports.isCheck = async (req, res) => {
       return res.status(404).send({ message: "출석 체크 진행중이 아닙니다." });
     }
     // 코드 부분만 제거
+    const user = req.user
+    // 출석 체크가 이미 진행 중인 경우 즉시 응답하고 연결 종료
+    // 코드 부분만 제거
     const { code, ...tokenWithOutCode } = token;
-    res.status(200).send({ message: "출석체크 진행중", token: tokenWithOutCode});
+    const userCheckedStatus = AttendanceTokenCache.isCheckedByUser(user.id,token.attendIdx)
+    res.status(200).send({ message: "출석체크 진행중", token: tokenWithOutCode, isChecked: userCheckedStatus});
   } catch (error) {
     console.error("출석 확인 중 오류가 발생했습니다", error);
     res.status(500).send({ message: "출석 확인 중 오류가 발생했습니다", error });
@@ -195,14 +199,6 @@ const broadcastSSE = (data) => {
 exports.isCheckAttendSSE = async (req, res) => {
   try {
     const token = AttendanceTokenCache.nowToken();
-    const user = req.user
-    if (token) {
-      // 출석 체크가 이미 진행 중인 경우 즉시 응답하고 연결 종료
-      // 코드 부분만 제거
-      const { code, ...tokenWithOutCode } = token;
-      const userCheckedStatus = AttendanceTokenCache.isCheckedByUser(user.id,token.attendIdx)
-      return res.status(200).send({ message: "출석체크 진행중", token: tokenWithOutCode, isChecked : userCheckedStatus});
-    }
 
     // SSE 헤더 설정
     res.setHeader('Content-Type', 'text/event-stream');
