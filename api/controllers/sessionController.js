@@ -198,8 +198,6 @@ const broadcastSSE = (data) => {
 // 클라이언트 연결을 clients배열로 추적하여 관리
 exports.isCheckAttendSSE = async (req, res) => {
   try {
-    const token = AttendanceTokenCache.nowToken();
-
     // SSE 헤더 설정
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -207,6 +205,7 @@ exports.isCheckAttendSSE = async (req, res) => {
     res.flushHeaders();
 
     // 클라이언트 목록에 추가
+    const user = req.user
     const clientId = user.id;
     clients.push({ id: clientId, res });
     console.log(`Client connected: ${clientId}`);
