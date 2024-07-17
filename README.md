@@ -8,6 +8,7 @@
   - 백엔드: Node.js, Express
   - 데이터베이스: MongoDB
   - 인메모리 캐시: 출석을 위한 하나의 객체를 구현
+  - sse: 출석체크 시작 시 연결중인 클라이언트에게 이벤트 메세지를 보냄
 - **아키텍처**:
   - **모델(Model)**: 데이터베이스와 상호작용하는 로직을 포함합니다.
   - **미들웨어(Middleware)**: 요청 처리 중간에 실행되는 로직으로, 인증, 로그, 데이터 검증 등을 담당합니다.
@@ -15,6 +16,58 @@
   - **라우터(Router)**: 요청 경로와 컨트롤러를 매핑합니다.
 - **설계 패턴**: 각 부분을 모듈화하여 유지보수성과 확장성을 높였습니다.
 - **성능 최적화**: 인메모리 캐시를 도입하여 데이터베이스 쿼리 횟수를 줄이고 응답 시간을 단축시켰습니다.
+
+## 모델
+- **스키마**:
+User
+
+```json
+{
+  "id": "user_id",
+  "username": "exampleuser",
+  "email": "user@example.com",
+  "password": "hashed_password",
+  "isAdmin": true
+}
+```
+
+Session
+
+```json
+{
+  "id": "session_id",
+  "name": "Session 1",
+  "date": "2023-07-09T10:00:00Z",
+  "checksNum": 1
+}
+```
+
+Attend
+
+```json
+{
+  "id": "attendance_id",
+  "user": "user_id",
+  "session": "session_id",
+  "attendList": [
+    {
+      "attendIdx": 1,
+      "status": true
+    }
+  ],
+  "userName": "user_name",
+  "sessionName" : "session_name",
+  "sessionDate" : "session_date"
+}
+```
+
+
+## 환경 변수
+MONGODB_URI=
+USER=
+PASS=
+SPREADSHEET_ID=
+KEYFILE_PATH=
 
 ## 문제 해결
 ### 문제 1: 출석이 진행되는 10분간 서버 응답 시간 지연
@@ -56,6 +109,11 @@
     - **해결 방법**: 
       - 클라이언트 연결을 관리하는 배열을 만듬 
       - 이벤트를 일괄로 1초마다 확인하여 이벤트 발생시 배열 내의(즉, 연결 중인 모든 클라이언트)에게 메세지를 보냄
+  - **구현중 문제**: 클라이언트에게 특정 조건일 경우 200과 데이터를 이 외에는 sse로 연결 후 메세지 전송을 하였는데 프론트 측에서 처리가 예상과 달리 어렵고 로직이 복잡해짐
+    - **해결 방법**: 
+      - sse연결과 이벤트 메세지 전송만을 진행하게 함 
+      - 만일 조건 처리가 필요 시 일반(sse가 아닌) api를 사용하면 됌
+
 <details markdown="1">
   <summary>상세 설명</summary>
   <div>
@@ -85,15 +143,7 @@
       // 클라이언트 연결을 clients배열로 추적하여 관리
       exports.isCheckAttendSSE = async (req, res) => {
         try {
-          const token = AttendanceTokenCache.nowToken();
           const user = req.user
-          if (token) {
-            // 출석 체크가 이미 진행 중인 경우 즉시 응답하고 연결 종료
-            // 코드 부분만 제거
-            const { code, ...tokenWithOutCode } = token;
-            const userCheckedStatus = AttendanceTokenCache.isCheckedByUser(user.id,token.attendIdx)
-            return res.status(200).send({ message: "출석체크 진행중", token: tokenWithOutCode, isChecked : userCheckedStatus});
-          }
 
           // SSE 헤더 설정
           res.setHeader('Content-Type', 'text/event-stream');
@@ -152,30 +202,18 @@
   </div>
   <div>
     <h3> 응답 예시 </h3>
-  <ul>
-  <li>
-      1. 출석 체크가 이미 진행 중인 경우
-        
-        ```json
-          {
-            "message": "출석체크 진행중",
-            "token": {
-              "sessionId": "6692281992e544d92889c833",
-              "attendIdx": "1",
-              "expireAt": 1720856397502
-            },
-            "isChecked": false
-          }
-        ```
-      
-  <li>
-      2. 출석 체크가 진행 중이지 않은 경우
-      출석 체크가 시작시 다음과 같은 SSE 메시지를 수신
+    출석 체크가 시작시 다음과 같은 SSE 메시지를 수신
 
       ```plaintext
         data: {"message":"출석체크 진행중","token":{"sessionId":"6692281992e544d92889c833","attendIdx":"1","expireAt":1720856397502},"isChecked":false}
       ```
-  </ul>
+  </div>
+  <div>
+  <h3>시행착오</h3>
+  <p>
+    하나의 엔드 포인트를 자원을 보낼 수 있을 때는 200과 함께 데이터를, 보낼 수 없을 경우 연결을 하고 보낼 수 있게 되면 sse로 전송하면 더 좋을 거라고 생각햇는데
+    프론트 측에서 처리하기 까다롭고 하나의 엔드포인트가 일반 응답과 sse를 같이 사용하는 것이 부적절하다는 것을 알게 되엇다, 이번의 경우에는 일반응답과 sse를 나누어 처리할 필요가 없어 sse만을 사용하지만, sse 연결을 일부 경우에만 하고 싶을 경우는 일반 응답 엔드포인트를 거치고 sse연결을 하는 식으로 해야할 것 같다.
+  </P>   
   </div>
 </details>
 
@@ -195,6 +233,7 @@
     cd Pironeer_Attend_Web
     npm install
     ```
+3. .env의 환경변수,keyFiles 등 환경을 설정
 
 ### 사용법
 1. 환경에 맞게 app.js와 스웨거 파일, 환경변수 파일을 변경합니다.
@@ -206,7 +245,7 @@
     pm2 start app
     ```
 
-3. 브라우저에서 `http://localhost:3000/api-docs/`에 접속합니다.
+3. 브라우저에서 `http://[서버 혹은 로컬 주소]:3000/api-docs/`에 접속합니다.
 
 ## 프로젝트 구조
 ```plaintext
@@ -224,18 +263,11 @@ project
 └── .gitignore     
 ```
 
-# API 개요
-
-이 API는 출석 관리 시스템을 위한 RESTful API입니다. 사용자, 세션, 출석 정보를 관리할 수 있습니다.
-
 ## 인증 방법
 
 이 API는 JWT(JSON Web Token) 인증 방식을 사용합니다. 모든 요청에는 헤더에 토큰을 포함해야 합니다:
 
-인증 방법
-이 API는 JWT (JSON Web Token) 인증 방식을 사용합니다. 모든 요청에는 헤더에 토큰을 포함해야 합니다. 다음은 인증 방법에 대한 자세한 설명입니다:
-
-JWT 생성
+### JWT 생성
 사용자가 로그인하면, 서버는 다음과 같은 정보를 포함하여 JWT를 생성합니다:
 
 ```javascript
@@ -284,93 +316,4 @@ const authenticateToken = async (req, res, next) => {
 };
 
 module.exports = authenticateToken;
-```
-
-# API 엔드포인트
-## 사용자 엔드포인트
-### 회원가입
-
-URL: /user/signup
-Method: POST
-설명: 새로운 사용자를 생성합니다.
-요청 예시:
-```json
-{
-  "username": "exampleuser",
-  "password": "examplepassword",
-  "email": "user@example.com"
-}
-```
-응답 예시:
-```json
-{
-  "message": "User created successfully",
-  "user": {
-    "id": "user_id",
-    "username": "exampleuser",
-    "email": "user@example.com"
-  }
-}
-```
-
-로그인
-
-URL: /user/login
-Method: POST
-설명: 사용자 로그인을 처리하고 JWT 토큰을 반환합니다.
-요청 예시:
-```json
-{
-  "username": "exampleuser",
-  "password": "examplepassword"
-}
-```
-응답 예시:
-```json
-{
-  "message": "Login successfully",
-  "token": "your_jwt_token",
-
-}
-```
-
-정의된 스키마
-User
-
-```json
-{
-  "id": "user_id",
-  "username": "exampleuser",
-  "email": "user@example.com",
-  "password": "hashed_password",
-  "isAdmin": true
-}
-```
-Session
-
-```json
-{
-  "id": "session_id",
-  "name": "Session 1",
-  "date": "2023-07-09T10:00:00Z",
-  "checksNum": 1
-}
-```
-
-Attend
-```json
-{
-  "id": "attendance_id",
-  "user": "user_id",
-  "session": "session_id",
-  "attendList": [
-    {
-      "attendIdx": 1,
-      "status": true
-    }
-  ],
-  "userName": "user_name",
-  "sessionName" : "session_name",
-  "sessionDate" : "session_date"
-}
 ```

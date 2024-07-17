@@ -4,11 +4,15 @@ const sessionController = require('../controllers/sessionController');
 const authenticateToken = require('../middlewares/authentication');
 const adminMiddleware = require("../middlewares/admin");
 
+/**
+ * @swagger
+ * tags:
+ *   - name: Sessions
+ *     description: 세션 관련 작업
+ */
+
 // 세션 생성
 router.post('/createSession', authenticateToken,adminMiddleware, sessionController.createSession);
-
-// 출석 체크 시작 (어드민 인증 필요)
-router.post('/startAttendCheck/:id',authenticateToken,adminMiddleware, sessionController.startAttendCheckBySession);
 
 // 모든 세션 조회 (유저 인증 필요)
 router.get('/sessions', authenticateToken, sessionController.getAllSessions);
@@ -16,38 +20,16 @@ router.get('/sessions', authenticateToken, sessionController.getAllSessions);
 // 특정 세션 조회 (모든 유저의 출석 포함, 어드민 인증 필요)
 router.get('/sessions/:id',authenticateToken,adminMiddleware, sessionController.getSessionById);
 
-// 출석 체크
-router.post('/checkAttend/:userId', authenticateToken, sessionController.checkAttend);
-
-// 출석 체크 재시작
-router.post('/restartAttendCheck/:sessionId/:attendIdx', authenticateToken,adminMiddleware, sessionController.restartAttendCheckBySession);
-
-// 출석체크 진행여부
-router.get('/isCheck', authenticateToken,sessionController.isCheck);
-
-// 출석체크 진행여부
-router.get('/isCheckAttend', authenticateToken, sessionController.isCheckAttendSSE);
-
-// 출석 체크 조기 종료
-router.delete('/endAttendCheck',authenticateToken,adminMiddleware, sessionController.endAttendCheck);
-
 // 세션 삭제 (어드민 인증 필요)
 router.delete('/deleteSession/:sessionId', authenticateToken, adminMiddleware, sessionController.deleteSession);
+
+// 구글 드라이브 코드
 router.get('/attendance/spreadsheets', authenticateToken,adminMiddleware, sessionController.spreadsheets);
 router.post('/sessions/:id/spreadsheets', authenticateToken,adminMiddleware,sessionController.sessionToSpreadsheet);
 router.post('/sessions/:id/spreadsheets/1', authenticateToken,adminMiddleware,sessionController.firstSessionToSpreadsheet);
 router.post('/sessions/:id/spreadsheets/2', authenticateToken,adminMiddleware,sessionController.secondSessionToSpreadsheet);
 router.post('/sessions/:id/spreadsheets/3', authenticateToken,adminMiddleware,sessionController.thirdSessionToSpreadsheet);
 module.exports = router;
-
-/**
- * @swagger
- * tags:
- *   - name: Sessions
- *     description: 세션 관련 작업
- *   - name: Attendance
- *     description: 출석 관련 작업
- */
 
 /**
  * @swagger
