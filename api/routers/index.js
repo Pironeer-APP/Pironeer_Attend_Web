@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userRouters = require("./userRouters")
 const sessionRouters = require("./sessionRouters")
+const depositRouters = require('./depositRouters');
 
 /**
  * @swagger
@@ -18,5 +19,13 @@ router.use("/user", userRouters)
  *   description: 세션 생성, 관리 출석체크 진행, 관리
  */
 router.use("/session", sessionRouters)
+
+/**
+ * @swagger
+ * tags:
+ *   name: Deposits
+ *   description: 보증금 조회, 보증금 방어권 사용
+ */
+router.use("/deposit", depositRouters);
 
 module.exports = router
