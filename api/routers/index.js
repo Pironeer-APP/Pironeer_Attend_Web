@@ -1,33 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const userRouters = require("./userRouters")
-const sessionRouters = require("./sessionRouters")
-const attendanceRouters = require("./attendanceRouters")
+const userRouters = require("./userRouters");
+const sessionRouters = require("./sessionRouters");
+const attendanceRouters = require("./attendanceRouters");
 
 /**
  * @swagger
  * tags:
- *   name: Users
- *   description: 유저 추가 수정 삭제 조회
+ *   - name: Users
+ *     description: 유저 추가 수정 삭제 조회
  */
-router.use("/user", userRouters)
+router.use("/user", userRouters);
 
 /**
  * @swagger
  * tags:
- *   name: Sessions
- *   description: 세션 생성, 관리
+ *   - name: Sessions
+ *     description: 세션 생성, 관리
  */
-router.use("/session", sessionRouters)
-
-// 기존 url
-/**
- * @swagger
- * tags:
- *   - name: Attendance
- *     description: 출석체크 진행, 관리, 출석 관련 작업
- */
-router.use("/session", attendanceRouters)
+router.use("/session", sessionRouters);
 
 /**
  * @swagger
@@ -35,6 +26,14 @@ router.use("/session", attendanceRouters)
  *   - name: Attendance
  *     description: 출석체크 진행, 관리, 출석 관련 작업
  */
-router.use("/attendance", attendanceRouters)
+router.use("/attendance", attendanceRouters);
 
-module.exports = router
+// /**
+//  * @swagger
+//  * tags:
+//  *   - name: Attendance
+//  *     description: 출석체크 진행, 관리, 출석 관련 작업
+//  */
+// router.use("/attendance", attendanceRouters)
+
+module.exports = router;
