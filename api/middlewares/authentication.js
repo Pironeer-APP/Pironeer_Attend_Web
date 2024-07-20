@@ -14,10 +14,11 @@ const authenticateToken = async (req, res, next) => {
     token = req.query.token;
   }
 
-  if (!token) return res.sendStatus(401); // 토큰 없음
+  if (!token) return res.status(401).send({ message: 'Unauthorized: No token provided' }); // 토큰 없음
 
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
+    console.log("Decoded Token:", decoded);
     const user = await User.findById(decoded._id);
 
     if (!user) {

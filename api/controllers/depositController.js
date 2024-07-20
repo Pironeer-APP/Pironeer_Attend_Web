@@ -83,8 +83,7 @@ exports.depositReload = async(req, res)=>{
             return res.status(400).send({message : "보증금 내역이 존재하지 않습니다."});
         }
 
-        const modifiedTime = depositmodifiedTime;
-        modifiedTime = new Date();
+        deposit.modifiedTime = new Date();
         await deposit.save();
 
         res.status(200).send({message : "보증금 내역이 정상적으로 업데이트 되었습니다.", user, deposit});
