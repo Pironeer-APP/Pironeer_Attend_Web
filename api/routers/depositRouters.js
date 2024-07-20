@@ -5,13 +5,13 @@ const adminMiddleware = require('../middlewares/admin');
 const depositController = require('../controllers/depositController');
 
 //보증금 페이지 접속
-router.get('/:userId', depositController.checkDeposit);
+router.get('/:userId', authenticateToken, depositController.checkDeposit);
 
 //보증금 방어권 사용
-router.post('/:userId/defend/use', depositController.useDefend);
+router.post('/:userId/defend/use', authenticateToken, depositController.useDefend);
 
 //보증금 새로고침
-router.post('/:userId/reload', depositController.depositReload);
+router.post('/:userId/reload', authenticateToken, depositController.depositReload);
 
 module.exports = router;
 
