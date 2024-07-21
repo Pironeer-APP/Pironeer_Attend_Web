@@ -3,6 +3,7 @@ const router = express.Router();
 const userRouters = require("./userRouters");
 const sessionRouters = require("./sessionRouters");
 const attendanceRouters = require("./attendanceRouters");
+const depositRouters = require('./depositRouters');
 
 /**
  * @swagger
@@ -36,4 +37,12 @@ router.use("/session", attendanceRouters);
 //  */
 // router.use("/attendance", attendanceRouters)
 
-module.exports = router;
+/**
+ * @swagger
+ * tags:
+ *   name: Deposits
+ *   description: 보증금 조회, 보증금 방어권 사용
+ */
+router.use("/deposit", depositRouters);
+
+module.exports = router
