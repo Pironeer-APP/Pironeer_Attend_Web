@@ -1,6 +1,7 @@
 const User = require("../models/user");
 const Attend = require('../models/attend');
 const Session = require('../models/session')
+const Deposit = require('../models/deposit');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -16,6 +17,17 @@ exports.createUser = async (req, res) => {
     const { username, password, email } = req.body;
     const user = new User({ username, password, email });
     await user.save();
+
+    //deposit 문서 생성
+    const deposit = new Deposit({
+      user: user._id,
+      userName: user.username,
+      assignmentList: [],
+      defendList: [],
+      deductionList: []
+    });
+    await deposit.save();
+
     res.status(201).send({ message: "User created successfully", user });
   } catch (error) {
     res.status(400).send({ message: "Error creating user", error });
