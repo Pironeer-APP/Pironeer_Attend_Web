@@ -6,12 +6,14 @@ const depositController = require('../controllers/depositController');
 
 //보증금 페이지 접속
 router.get('/:userId', depositController.checkDeposit);
+// //보증금 페이지 접속
+// router.get('/deposit/:userId', authenticateToken, depositController.checkDeposit);
 
-//보증금 방어권 사용
-router.post('/:userId/defend/use', depositController.useDefend);
+// //보증금 방어권 사용
+// router.post('/deposit/:userId/defend/use', authenticateToken, depositController.useDefend);
 
-//보증금 새로고침
-router.post('/:userId/reload', depositController.depositReload);
+// //보증금 새로고침
+// router.post('/:userId/reload', depositController.depositReload);
 
 //보증금 방어권 삭제
 router.post('/:userId/defend/delete', authenticateToken,adminMiddleware, depositController.dependDelete);
