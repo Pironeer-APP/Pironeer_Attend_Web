@@ -10,6 +10,7 @@ require('dotenv').config();
 // JWT 비밀키
 const JWT_SECRET = "piro";
 
+// 유저 회원가입()
 exports.createUser = async (req, res) => {
   try {
     const { username, password, email } = req.body;
@@ -79,9 +80,11 @@ exports.login = async (req, res) => {
     if (!user){
       return res.status(401).send({ message:"해당 유저가 없습니다" });
     } 
-    if (await bcrypt.compare(password, user.password)) {
+
+    if (! await bcrypt.compare(password, user.password)) {
       return res.status(401).send({ message:"비밀번호 틀림"});
     }
+
     const token = jwt.sign({ _id: user._id, _isAdmin: user.isAdmin }, JWT_SECRET, { expiresIn: "1h" });
     
     res.status(200).send({ message: "Login successfully", token : token, user : user });

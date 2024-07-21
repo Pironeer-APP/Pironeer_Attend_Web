@@ -26,7 +26,7 @@ router.use("/session", sessionRouters);
  *   - name: Attendance
  *     description: 출석체크 진행, 관리, 출석 관련 작업
  */
-router.use("/attendance", attendanceRouters);
+router.use("/session", attendanceRouters);
 
 // /**
 //  * @swagger
