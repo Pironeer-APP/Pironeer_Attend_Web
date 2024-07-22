@@ -7,7 +7,7 @@ const options = {
     info: {
       version: "1.0.0",
       title: "출석체크",
-      description: "프로젝트 설명 Node.js Swagger swagger-jsdoc 방식 RestFul API 클라이언트 UI",
+      description: "Node.js, mongoDB RestFul(아님) API 클라이언트 UI",
     },
     servers: [
       {
@@ -24,6 +24,17 @@ const options = {
         },
       },
     },
+    tags: [
+      { name: 'Users', description: '유저 추가 수정 삭제 조회' },
+      { name: 'Sessions', description: '세션 생성, 관리' },
+      { name: 'Attendance', description: '출석체크 진행, 관리, 출석 관련 작업' },
+    ],
+    'x-tagGroups': [
+      {
+        name: 'Main',
+        tags: ['Users', 'Sessions', 'Attendance'],
+      },
+    ],
   },
   apis: ["./api/routers/*.js"], // Swagger 파일 연동
 };

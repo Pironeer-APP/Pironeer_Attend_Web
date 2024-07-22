@@ -11,7 +11,7 @@ require('dotenv').config();
 // JWT 비밀키
 const JWT_SECRET = "piro";
 
-// Create: 새로운 사용자를 생성합니다.
+// 유저 회원가입()
 exports.createUser = async (req, res) => {
   try {
     const { username, password, email } = req.body;
@@ -34,7 +34,6 @@ exports.createUser = async (req, res) => {
   }
 };
 
-// Read: 모든 사용자를 조회합니다.
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find({});
@@ -44,7 +43,6 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-// Read: 특정 사용자를 ID로 조회합니다.
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -57,7 +55,6 @@ exports.getUserById = async (req, res) => {
   }
 };
 
-// Update: 특정 사용자의 정보를 업데이트합니다.
 exports.updateUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -75,7 +72,6 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// Delete: 특정 사용자를 삭제합니다.
 exports.deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
@@ -88,17 +84,24 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
+// 유저 로그인
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).send("비밀번호 틀림");
+    if (!user){
+      return res.status(401).send({ message:"해당 유저가 없습니다" });
+    } 
+
+    if (! await bcrypt.compare(password, user.password)) {
+      return res.status(401).send({ message:"비밀번호 틀림"});
     }
+
     const token = jwt.sign({ _id: user._id, _isAdmin: user.isAdmin }, JWT_SECRET, { expiresIn: "1h" });
-    res.json({ message: "Login successfully", token : token, user : user });
+    
+    res.status(200).send({ message: "Login successfully", token : token, user : user });
   } catch (error) {
-    res.status(500).send("Login error");
+    res.status(500).send({ message:"Login error" });
   }
 };
 
