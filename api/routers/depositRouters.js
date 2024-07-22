@@ -5,10 +5,10 @@ const adminMiddleware = require('../middlewares/admin');
 const depositController = require('../controllers/depositController');
 
 //보증금 페이지 접속
-router.get('/deposit/:userId', authenticateToken, depositController.checkDeposit);
+router.get('/:userId', authenticateToken, depositController.checkDeposit);
 
 //보증금 방어권 사용
-router.post('/deposit/:userId/defend/use', authenticateToken, depositController.useDefend);
+router.post('/:userId/defend/use', authenticateToken, depositController.useDefend);
 
 
 //보증금 방어권 삭제
@@ -73,6 +73,8 @@ module.exports = router;
  *         schema:
  *           type: string
  *         description: The user ID
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Defend used successfully
@@ -85,28 +87,6 @@ module.exports = router;
  *                   type: string
  *                   description: Success message
 
- * /api/deposit/{userId}/reload:
- *   post:
- *     summary: 보증금 내역을 reload 합니다.
- *     tags: [Deposits]
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: string
- *         description: The user ID
- *     responses:
- *       200:
- *         description: Deposit reloaded successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Success message
  * /api/deposit/assignment/insert:
  *   post:
  *     summary: Insert assignment information
