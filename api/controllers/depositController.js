@@ -206,7 +206,7 @@ exports.checkDeposit = async(req, res)=>{
 
         const user = await User.findById(userId);
         if(!user){
-            return res.status(404).send({message: "존재하지 않는 사용자입니다."});
+            return res.status(400).send({message: "존재하지 않는 사용자입니다."});
         }
 
         const deposit = await Deposit.findOne({user: user._id}).select('deposit deductionList');
@@ -216,7 +216,7 @@ exports.checkDeposit = async(req, res)=>{
 
         const deductionList = deposit.deductionList;
 
-        res.status(200).send({user, deposit: deposit.deposit, deductionList});
+        res.status(201).send({user, deposit: deposit.deposit, deductionList});
     } catch(error){
         res.status(500).send({message: "보증금 정보를 가져오는 도중 오류가 발생했습니다.", error});
     }
@@ -229,7 +229,7 @@ exports.useDefend = async(req, res)=>{
 
         const user = await User.findById(userId);
         if(!user){
-            return res.status(404).send({message : "존재하지 않는 사용자입니다."});
+            return res.status(400).send({message : "존재하지 않는 사용자입니다."});
         }
 
         const deposit = await Deposit.findOne({user: user._id}).select('deposit defendList deductionList');
@@ -260,7 +260,7 @@ exports.useDefend = async(req, res)=>{
 
         await deposit.save();
 
-        res.status(200).send({message: "보증금 방어권이 정상적으로 사용되었습니다", user, defendList});
+        res.status(201).send({message: "보증금 방어권이 정상적으로 사용되었습니다", user, deposit: deposit.deposit, deductionList: deposit.deductionList});
     }catch(error){
         res.status(500).send({message : "보증금 방어권을 사용하는 도중 오류가 발생했습니다.", error});
     }
