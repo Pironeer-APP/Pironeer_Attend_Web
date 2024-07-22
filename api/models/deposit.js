@@ -74,10 +74,6 @@ const depositSchema = new mongoose.Schema({
         deductionDetail:{
             type: String,
             required: true
-        },
-        isDefended:{
-            type: Boolean,
-            default: false //false(방어 안 함), true(방어권 사용함)
         }
     }]
 });
