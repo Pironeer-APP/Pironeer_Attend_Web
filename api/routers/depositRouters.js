@@ -7,6 +7,9 @@ const depositController = require('../controllers/depositController');
 //보증금 페이지 접속
 router.get('/:userId', authenticateToken, depositController.checkDeposit);
 
+//보증금 내역 수정
+router.put('/:userId/update/:deductionIdx', authenticateToken, adminMiddleware, depositController.updateDeposit);
+
 //보증금 방어권 사용
 router.post('/:userId/defend/use', authenticateToken, depositController.useDefend);
 
@@ -61,7 +64,90 @@ module.exports = router;
  *                 deposit:
  *                   type: number
  *                   description: The deposit amount
-
+ * /api/deposit/{userId}/update/{deductionIdx}:
+ *   put:
+ *     summary: Update deposit deduction details
+ *     tags: [Deposits]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The user ID
+ *       - in: path
+ *         name: deductionIdx
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The deduction index
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       description: Deduction details to update
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               deductedAmount:
+ *                 type: number
+ *                 example: -10000
+ *               deductionDetail:
+ *                 type: string
+ *                 example: Updated deduction detail
+ *             required:
+ *               - deductedAmount
+ *               - deductionDetail
+ *     responses:
+ *       200:
+ *         description: Deduction successfully updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "차감 내역이 성공적으로 수정되었습니다"
+ *                 deductionList:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       deductionIdx:
+ *                         type: integer
+ *                       deductionDate:
+ *                         type: string
+ *                         format: date-time
+ *                       deductedAmount:
+ *                         type: number
+ *                       deductionDetail:
+ *                         type: string
+ *       400:
+ *         description: Invalid request or resource not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "존재하지 않는 사용자입니다."
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "차감 내역을 수정하는 도중 오류가 발생했습니다."
+ *                 error:
+ *                   type: object
+ *
  * /api/deposit/{userId}/defend/use:
  *   post:
  *     summary: 보증금 방어권을 사용합니다.
