@@ -131,7 +131,7 @@ exports.AssignmentInsert = async (req, res) => {
           }
       }
 
-      res.status(200).json({ message: '과제 정보 입력이 성공적으로 되었습니다' });
+      res.status(200).json({ message: '과제 정보 입력이 성공적으로 되었습니다',deposit });
   } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Server error' });
