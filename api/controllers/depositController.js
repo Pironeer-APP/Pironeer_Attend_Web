@@ -209,18 +209,57 @@ exports.checkDeposit = async(req, res)=>{
             return res.status(400).send({message: "존재하지 않는 사용자입니다."});
         }
 
-        const deposit = await Deposit.findOne({user: user._id}).select('deposit deductionList');
+        const deposit = await Deposit.findOne({user: user._id}).select('deposit deductionList defendList');
         if(!deposit){
             return res.status(400).send({message : "보증금 내역이 존재하지 않습니다."});
         }
 
         const deductionList = deposit.deductionList;
+        const defendList = deposit.defendList;
 
-        res.status(201).send({user, deposit: deposit.deposit, deductionList});
+        res.status(201).send({user, deposit: deposit.deposit, deductionList, defendCount : defendList.length});
     } catch(error){
         res.status(500).send({message: "보증금 정보를 가져오는 도중 오류가 발생했습니다.", error});
     }
 };
+
+//보증금 내역 수정하기
+exports.updateDeposit = async(req, res)=>{
+    try{
+        const {userId, deductionIdx} = req.params;
+        const {deductedAmount, deductionDetail} = req.body;
+
+        const user = await User.findById(userId);
+        if(!user){
+            return res.status(400).send({message : "존재하지 않는 사용자입니다."});
+        }
+
+        const deposit = await Deposit.findOne({user : user._id});
+        if(!deposit){
+            return res.status(400).send({message : "보증금 내역이 존재하지 않습니다."})
+        }
+
+        const deductionIndex = deposit.deductionList.findIndex(deduction => deduction.deductionIdx === parseInt(deductionIdx, 10));
+        if(deductionIndex === -1){
+            return res.status(400).send({message : "해당 차감 내역을 찾을 수 없습니다."});
+        }
+
+        //내역 업데이트
+        const oldDeductedAmount = deposit.deductionList[deductionIndex].deductedAmount;
+        deposit.deductionList[deductionIndex].deductedAmount = deductedAmount;
+        deposit.deductionList[deductionIndex].deductionDetail = deductionDetail;
+
+        //보증금 업데이트
+        deposit.updateDeposit(deductedAmount - oldDeductedAmount);
+
+        await deposit.save();
+
+        res.status(200).send({message : "차감 내역이 성공적으로 수정되었습니다", deductionList : deposit.deductionList});
+
+    }catch(error){
+        res.status(500).send({message : "차감 내역을 수정하는 도중 오류가 발생했습니다.", error});
+    }
+}
 
 //보증금 방어권 사용
 exports.useDefend = async(req, res)=>{
