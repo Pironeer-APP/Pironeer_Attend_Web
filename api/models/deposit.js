@@ -1,12 +1,14 @@
 const mongoose = require('mongoose');
 
 const depositSchema = new mongoose.Schema({
+    //유저 객체
     user : {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
         index: true,
     },
+    //유저이름
     userName:{
         type: String,
         required: true
@@ -17,25 +19,6 @@ const depositSchema = new mongoose.Schema({
         default: 80000,
         min: 0
     },
-    //과제 체크 리스트 : 미흡 또는 안 함 표시
-    assignmentList: [{
-        assignmentIdx:{
-            type: Number,
-            required: true
-        },
-        assignment:{
-            type: String,
-            required: true
-        },
-        assignedDate:{
-            type: Date,
-            required: true
-        },
-        check:{
-            type: Boolean,
-            default: true //기본값은 true(미흡) : 안 함 처리 하고 싶으면 false로
-        }
-    }],
     //보증금 방어권 리스트
     defendList:[{
         defendIdx:{
