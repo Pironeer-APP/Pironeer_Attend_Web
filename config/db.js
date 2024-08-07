@@ -2,20 +2,20 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 
-// 쿼리 통계를 저장할 객체
-const queryStats = {
-  totalQueries: 0,
-  readQueries: 0,
-  writeQueries: 0,
-  queries: [],
-};
+// // 쿼리 통계를 저장할 객체
+// const queryStats = {
+//   totalQueries: 0,
+//   readQueries: 0,
+//   writeQueries: 0,
+//   queries: [],
+// };
 
-// 읽기 메소드와 쓰기 메소드 리스트
-const readMethods = ['find', 'findOne', 'findById', 'countDocuments', 'aggregate'];
-const writeMethods = ['insertOne', 'insertMany', 'updateOne', 'updateMany', 'deleteOne', 'deleteMany', 'findOneAndUpdate', 'findOneAndDelete'];
+// // 읽기 메소드와 쓰기 메소드 리스트
+// const readMethods = ['find', 'findOne', 'findById', 'countDocuments', 'aggregate'];
+// const writeMethods = ['insertOne', 'insertMany', 'updateOne', 'updateMany', 'deleteOne', 'deleteMany', 'findOneAndUpdate', 'findOneAndDelete'];
 
-// 주석 해제시 퀴리 로그 남고 읽기 쓰기 분석해 통계 저장
-// 디버그 콜백 함수 설정
+// // 주석 해제시 퀴리 로그 남고 읽기 쓰기 분석해 통계 저장
+// // 디버그 콜백 함수 설정
 // mongoose.set('debug', function (collectionName, method, query, doc, options) {
 //   queryStats.totalQueries += 1; // 전체 쿼리 수 증가
 
@@ -40,8 +40,6 @@ const writeMethods = ['insertOne', 'insertMany', 'updateOne', 'updateMany', 'del
 // });
 
 // MongoDB URI
-
-
 const uri = process.env.MONGODB_URI;
 
 // MongoDB 연결 함수
