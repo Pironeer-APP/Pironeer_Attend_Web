@@ -277,6 +277,72 @@ const auth = new google.auth.GoogleAuth({
     scopes: ['https://www.googleapis.com/auth/spreadsheets']
 });
 
+// 스프레드 시트로 출석 내역 전달 
+//
+// Execution Time: 2.195s
+// Query Statistics: {
+//   totalQueries: 8,
+//   readQueries: 3,
+//   writeQueries: 0,
+//   queries: [
+//     {
+//       collection: 'users',
+//       method: 'find',
+//       query: {},
+//       doc: {},
+//       options: undefined
+//     },
+//     {
+//       collection: 'attends',
+//       method: 'createIndex',
+//       query: [Object],
+//       doc: [Object],
+//       options: undefined
+//     },
+//     {
+//       collection: 'attends',
+//       method: 'find',
+//       query: [Object],
+//       doc: {},
+//       options: undefined
+//     },
+//     {
+//       collection: 'attends',
+//       method: 'createIndex',
+//       query: [Object],
+//       doc: [Object],
+//       options: undefined
+//     },
+//     {
+//       collection: 'users',
+//       method: 'createIndex',
+//       query: [Object],
+//       doc: [Object],
+//       options: undefined
+//     },
+//     {
+//       collection: 'users',
+//       method: 'createIndex',
+//       query: [Object],
+//       doc: [Object],
+//       options: undefined
+//     },
+//     {
+//       collection: 'sessions',
+//       method: 'createIndex',
+//       query: [Object],
+//       doc: [Object],
+//       options: undefined
+//     },
+//     {
+//       collection: 'sessions',
+//       method: 'find',
+//       query: {},
+//       doc: {},
+//       options: undefined
+//     }
+//   ]
+// }
 const spreadUserDeposit = async () => {
     try {
         console.time('Execution Time'); // 타이머 시작
@@ -324,26 +390,29 @@ const spreadUserDeposit = async () => {
             // 출석을 순회하며 차감 액 계산
             for (let attend of attends) {
                 let money = 0;
-                let noCheck = 0;
-                attend.attendList.forEach(attend => {
-                    if (attend.status === false) {
-                        noCheck += 1;
-                    }
-                });
-                if (noCheck == 1) {
-                    money = 10000;
-                } else if (noCheck > 1) {
-                    money = 20000;
-                }
+                // let noCheck = 0;
+                // attend.attendList.forEach(attend => {
+                //     if (attend.status === false) {
+                //         noCheck += 1;
+                //     }
+                // });
+                // if (noCheck == 1) {
+                //     money = 10000;
+                // } else if (noCheck > 1) {
+                //     money = 20000;
+                // }
+                // totalMoney += money;
+                
+                // 비교 문
+                let noCheck = attend.attendList.filter(attend => !attend.status).length;
+                money = noCheck > 1 ? 20000 : noCheck === 1 ? 10000 : 0;
                 totalMoney += money;
-                //attend.deduction = money
 
                 console.log(money);
                 // 차감 액을 해당 세션 이름의 위치에 삽입
                 // 이거 좀 코드가 섹시하다
                 col[firstCol.indexOf(attend.sessionName)] = money;
-                // // // 출석 정보 저장
-                await attend.save();
+                
             }
             console.log("totalMoney : ", totalMoney);
             col.push(totalMoney)
@@ -351,13 +420,14 @@ const spreadUserDeposit = async () => {
             
         }
         // 스프레드 시트로 전달
-        // await updateSpreadsheet(firstCol, cols);
+        await updateSpreadsheet(firstCol, cols);
         console.log('Data test completed successfully.');
     } catch (error) {
         console.error('Error during data test:', error);
     } finally {
         mongoose.connection.close();
         console.timeEnd('Execution Time'); // 타이머 종료 및 결과 출력
+        console.log('Query Statistics:', queryStats);
     }
 };
 
@@ -466,6 +536,7 @@ const updateSpreadsheet = async (firstCol, cols) => {
 
 // 출석체크를 순회하며 차감 금액을 계산 하여 저장하구 
 // 총 차감 금액으로 기수를 구분하여 유저 저장
+
 const dataMigrateUserBatchAttendDeduction = async () => {
     try {
         console.time('Execution Time'); // 타이머 시작
@@ -554,6 +625,8 @@ const dataMigrateUserBatchAttendDeduction = async () => {
 // spreadUserDeposit();
 // migrateData(); // 스크립트를 실행합니다.
 
-TESTuserDeposit1();
+//TESTuserDeposit1();
 
-module.exports = migrateData;
+// dataMigrateUserBatchAttendDeduction();
+
+spreadUserDeposit();
