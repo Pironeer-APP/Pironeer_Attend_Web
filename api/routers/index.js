@@ -5,6 +5,7 @@ const sessionRouters = require("./sessionRouters");
 const attendanceRouters = require("./attendanceRouters");
 const depositRouters = require('./depositRouters');
 const assignmentRouters = require('./assignmentRouters');
+const gradeRouters = require('./gradeRouters');
 
 /**
  * @swagger
@@ -49,7 +50,7 @@ router.use("/deposit", depositRouters);
 /**
  * @swagger
  * tags:
- *   name: Assignments
+ *   name: Assignment
  *   description: 과제 생성, 관리
  */
 router.use("/assignment", assignmentRouters);

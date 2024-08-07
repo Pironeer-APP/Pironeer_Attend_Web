@@ -5,6 +5,7 @@ const User = require('../models/user');
 //과제 생성
 exports.createAssignment = async(req, res)=>{
     try{
+
         const {name, date} = req.body;
 
         if(!name || !date){
@@ -80,8 +81,12 @@ exports.deleteAssignment = async(req, res)=>{
             return res.status(404).send({message : "해당 과제를 찾을 수 없습니다"});
         }
 
+        //해당 과제의 채점 정보 삭제
+        await Grade.deleteMany({assignment : assignmentId});
+
         //과제 삭제
         await Assignment.findByIdAndDelete(assignmentId);
+
 
         res.status(200).send({message: "과제가 성공적으로 삭제되었습니다"});
     }catch(error){
