@@ -24,10 +24,10 @@ router.post('/:userId/defend/add', authenticateToken,adminMiddleware, depositCon
 // router.post('/:userId/reload/all', authenticateToken,adminMiddleware, depositController.depositReloadAll);
 
 //과제 정보 입력
-router.post('/assignment/insert', authenticateToken,adminMiddleware, depositController.AssignmentInsert);
+//router.post('/assignment/insert', authenticateToken,adminMiddleware, depositController.AssignmentInsert);
 
 // 과제 정보 수정(과제 리스트 수정)
-router.post('/:userId/assignment/update', authenticateToken,adminMiddleware, depositController.AssignmentUpdate);
+//router.post('/:userId/assignment/update', authenticateToken,adminMiddleware, depositController.AssignmentUpdate);
 
 module.exports = router;
 

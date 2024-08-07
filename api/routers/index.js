@@ -4,6 +4,8 @@ const userRouters = require("./userRouters");
 const sessionRouters = require("./sessionRouters");
 const attendanceRouters = require("./attendanceRouters");
 const depositRouters = require('./depositRouters');
+const assignmentRouters = require('./assignmentRouters');
+const gradeRouters = require('./gradeRouters');
 
 /**
  * @swagger
@@ -44,5 +46,21 @@ router.use("/session", attendanceRouters);
  *   description: 보증금 조회, 보증금 방어권 사용
  */
 router.use("/deposit", depositRouters);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Assignment
+ *   description: 과제 생성, 관리
+ */
+router.use("/assignment", assignmentRouters);
+
+/**
+ * @swagger
+ * tags:
+ *   name: Grade
+ *   description: 과제 채점, 관리
+ */
+router.use("/assignment", gradeRouters);
 
 module.exports = router
