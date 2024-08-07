@@ -378,6 +378,9 @@ const spreadUserDeposit = async () => {
         // 이 외의 행 저장
         const cols = []
         for (let user of users) {
+            if(user.batch != 21){
+                continue;
+            };
             console.log(user.username);
             // 이외의 행의 처음은 유저 이름(/ 위치) 
             const col = []
