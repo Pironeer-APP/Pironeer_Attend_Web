@@ -3,7 +3,7 @@ const router = express.Router();
 const sessionController = require('../controllers/sessionController');
 const authenticateToken = require('../middlewares/authentication');
 const adminMiddleware = require("../middlewares/admin");
-const depositMiddleware = require("../middlewares/deposit");
+const sessionDepositMiddleware = require("../middlewares/sessionDeposit");
 /**
  * @swagger
  * tags:
@@ -78,7 +78,7 @@ router.get('/sessions', authenticateToken, sessionController.getAllSessions);
  */
 
 // 특정 세션 조회 (모든 유저의 출석 포함, 어드민 인증 필요)
-router.get('/sessions/:id', authenticateToken, adminMiddleware, sessionController.getSessionById,depositMiddleware);
+router.get('/sessions/:id', authenticateToken, adminMiddleware, sessionController.getSessionById,sessionDepositMiddleware);
 /**
  * @swagger
  * /api/session/sessions/{id}:

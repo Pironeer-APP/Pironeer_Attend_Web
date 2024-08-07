@@ -4,7 +4,7 @@ const User = require('../models/user');
 const Deposit = require('../models/deposit');
 
 //세션 보증금 차감을 하기 위한 미들웨어
-const depositMiddleware = async(req, res) => {
+const sessionDepositMiddleware = async(req, res) => {
   //세션데이터가 넘어 오지 않을 경우 오류
   if (!req.sessionData) {
     return res.status(403).json({ message: "세션 데이터가 넘어오지 않았습니다!" });
@@ -45,4 +45,4 @@ const depositMiddleware = async(req, res) => {
   res.status(200).send(req.sessionData);
 };
 
-module.exports = depositMiddleware;
+module.exports = sessionDepositMiddleware;
