@@ -7,7 +7,7 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   isAdmin: { type: Boolean, default: false },
-  batch: {}
+  batch: { type : Number, default: 21 }
 });
 
 // 비밀번호를 저장하기 전에 암호화

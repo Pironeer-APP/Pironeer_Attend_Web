@@ -105,6 +105,10 @@ exports.login = async (req, res) => {
   }
 };
 
+exports.logout = async(req, res) => {
+  
+}
+
 //서버 실행시 1회 관리자 유저가 없을 경우 생성
 exports.createInitAdmin = async () => {
   try {

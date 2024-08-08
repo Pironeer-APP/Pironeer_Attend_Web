@@ -40,6 +40,12 @@ exports.createSession = async (req, res) => {
   }
 };
 
+// 세션 저장? 종료?
+exports.saveSessionAttends = async (req,res) => {
+  const { sessionId } = req.params;
+  
+};
+
 //세션 지우기
 exports.deleteSession = async (req, res) => {
   try {
