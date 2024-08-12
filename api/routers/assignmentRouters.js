@@ -3,9 +3,10 @@ const router = express.Router();
 const assignmentController = require('../controllers/assignmentController');
 const authenticateToken = require('../middlewares/authentication');
 const adminMiddleware = require("../middlewares/admin");
+const assignmentMiddleware = require("../middlewares/assignment");
 
 //과제 생성
-router.post('/createAssignment', authenticateToken, adminMiddleware, assignmentController.createAssignment);
+router.post('/createAssignment', authenticateToken, adminMiddleware, assignmentController.createAssignment,assignmentMiddleware);
 
 //모든 과제 조회
 router.get('/assignments', authenticateToken, adminMiddleware, assignmentController.getAllAssignments);
@@ -40,6 +41,12 @@ module.exports = router;
  *                 type: string
  *                 format: date
  *                 description: 과제의 날짜
+ *               xList:
+ *                 type: string
+ *                 description: 과제 안한사람 이름
+ *               triList:
+ *                 type: string
+ *                 description: 과제 덜한사람 이름
  *     responses:
  *       201:
  *         description: 과제가 성공적으로 생성됨
