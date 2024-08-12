@@ -3,14 +3,18 @@ const Grade = require('../models/grade');
 const User = require('../models/user');
 
 //과제 생성
-exports.createAssignment = async(req, res)=>{
+exports.createAssignment = async(req, res, next)=>{
     try{
 
-        const {name, date} = req.body;
+        const {name, date, xList, triList} = req.body;
 
         if(!name || !date){
             return res.status(400).send({message : "과제 이름과 날짜는 필수입니다."});
         }
+
+        // xList와 triList를 문자열로 받아서 배열로 변환
+        const xListArray = xList ? xList.split(',').map(item => item.trim()) : [];
+        const triListArray = triList ? triList.split(',').map(item => item.trim()) : [];
 
         const assignment = new Assignment({name, date});
         await assignment.save();
@@ -20,19 +24,30 @@ exports.createAssignment = async(req, res)=>{
             return res.status(400).send({message : "사용자가 없습니다"});
         }
 
-        //모든 user에 대한 grade db 생성
-        const gradeDocuments = users.map(user =>({
-            user: user._id,
-            userName: user.username,
-            assignment: assignment._id,
-            assignmentName: assignment.name,
-            assignmentDate: assignment.date,
-            deduction: 0
-        }));
+        // 모든 user에 대한 grade db 생성
+        const gradeDocuments = users.map(user => {
+            let deduction = 0;
+
+            if (xListArray.includes(user.username)) { // username을 기준으로 비교
+                deduction = -20000;
+            } else if (triListArray.includes(user.username)) { // username을 기준으로 비교
+                deduction = -10000;
+            }
+
+            return {
+                user: user._id,
+                userName: user.username,
+                assignment: assignment._id,
+                assignmentName: assignment.name,
+                assignmentDate: assignment.date,
+                deduction: deduction
+            };
+        });
 
         await Grade.insertMany(gradeDocuments);
-
-        res.status(201).send({message : "과제가 성공적으로 생성되었습니다", assignment});
+        req.assignmentData = {  assignment, gradeDocuments, dbState : 1 };
+        next();
+        // res.status(201).send({message : "과제가 성공적으로 생성되었습니다", assignment});
     } catch(error){
         res.status(500).send({message : "과제 생성 도중 오류가 발생했습니다", error});
     }
@@ -59,7 +74,6 @@ exports.getAssignmentById = async(req, res)=>{
         }
 
         const grades = await Grade.find({assignment : assignment._id});
-        
         res.status(200).send({assignment, grades});
     } catch(error){
         res.status(500).send({message : "과제를 가져오는 도중 오류가 발생했습니다", error});
