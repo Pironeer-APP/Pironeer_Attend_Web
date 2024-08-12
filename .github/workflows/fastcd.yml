@@ -28,7 +28,7 @@ jobs:
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
         run: |
-          ssh -i $DEPLOY_KEY user@yourserver << 'EOF'
+          ssh -i $DEPLOY_KEY ec2-3-38-96-3.ap-northeast-2.compute.amazonaws.com << 'EOF'
           cd /path/to/your/project
           pm2 stop app.js || true
           git pull origin main
