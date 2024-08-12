@@ -38,7 +38,7 @@ jobs:
       # AWS EC2 인스턴스에 접속하여 애플리케이션을 배포합니다.
       - name: Deploy to AWS EC2
         run: |
-          ssh -i /tmp/deploy_key.pem -o StrictHostKeyChecking=no ubuntu@ec2-3-38-96-3.ap-northeast-2.compute.amazonaws.com << 'EOF'
+          ssh -i /tmp/deploy_key.pem -o StrictHostKeyChecking=no ubuntu@ec2-3-38-96-3.ap-northeast-2.compute.amazonaws.com
           cd Pironeer_Attend_Web/
           pm2 stop app.js || true
           git pull origin main
