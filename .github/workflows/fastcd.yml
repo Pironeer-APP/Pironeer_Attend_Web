@@ -10,25 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 리포지토리의 코드를 체크아웃합니다.
       - name: Check out the repository
         uses: actions/checkout@v3
 
+      # Node.js 환경을 설정합니다.
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16'
 
+      # 프로젝트의 의존성을 설치합니다.
       - name: Install dependencies
         run: npm install
 
       - name: Deploy to AWS EC2
-        env:
-          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-        run: |
-          ssh -i $DEPLOY_KEY -o StrictHostKeyChecking=no ubuntu@ec2-3-38-96-3.ap-northeast-2.compute.amazonaws.com << 'EOF'
-          cd Pironeer_Attend_Web/
-          pm2 stop app.js || true
-          git pull origin main
-          npm install --production
-          pm2 start app.js
-          EOF
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd Pironeer_Attend_Web/
+            git pull origin main
+            npm install --production
+            pm2 stop app || true
+            pm2 start app.js
+            sudo systemctl restart nginx
+          
