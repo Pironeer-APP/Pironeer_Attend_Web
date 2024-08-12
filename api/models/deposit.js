@@ -72,7 +72,11 @@ depositSchema.methods.updateDeposit = function (amount) {
 };
 
 depositSchema.pre('save', function(next){
-    this.modifiedTime = Date.now;
+    this.modifiedTime = Date.now();
+    
+    // deductionList를 deductionDate 기준으로 정렬
+    this.deductionList.sort((a, b) => a.deductionDate - b.deductionDate);
+    
     next();
 });
 
