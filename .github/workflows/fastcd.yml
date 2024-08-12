@@ -33,7 +33,7 @@ jobs:
           script: |
             cd Pironeer_Attend_Web/
             git pull origin main
-            npm install --production
+            npm install
             pm2 stop app.js || true
             pm2 start app.js
             sudo systemctl restart nginx
