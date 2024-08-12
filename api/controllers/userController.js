@@ -1,6 +1,7 @@
 const User = require("../models/user");
 const Attend = require('../models/attend');
 const Session = require('../models/session')
+const Deposit = require('../models/deposit');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -16,6 +17,17 @@ exports.createUser = async (req, res) => {
     const { username, password, email } = req.body;
     const user = new User({ username, password, email });
     await user.save();
+
+    //deposit 문서 생성
+    const deposit = new Deposit({
+      user: user._id,
+      userName: user.username,
+      assignmentList: [],
+      defendList: [],
+      deductionList: []
+    });
+    await deposit.save();
+
     res.status(201).send({ message: "User created successfully", user });
   } catch (error) {
     res.status(400).send({ message: "Error creating user", error });
@@ -92,6 +104,10 @@ exports.login = async (req, res) => {
     res.status(500).send({ message:"Login error" });
   }
 };
+
+exports.logout = async(req, res) => {
+  
+}
 
 //서버 실행시 1회 관리자 유저가 없을 경우 생성
 exports.createInitAdmin = async () => {
@@ -209,7 +225,7 @@ exports.updateUserAttendance =  async (req, res) => {
       // DB에 업데이트
       await attendance.save();
 
-      res.status(200).send('성공적으로 데이터를 옮겼습니다.');
+      res.status(200).send({ message: '성공적으로 데이터를 옮겼습니다.' });
   } catch (error) {
     console.error('데이터를 옮기는데 실패했습니다', error);
     res.status(500).send('데이터를 옮기는데 실패했습니다');

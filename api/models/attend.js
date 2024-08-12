@@ -44,6 +44,12 @@ const attendSchema = new mongoose.Schema({
         default: false, // 기본 값은 false (결석)
       }
     }],
+    // 출석 차감 금액
+    deduction:{
+      type: Number,
+      enum: [0, -10000, -20000], 
+      default: 0
+    }, 
 });
 
 // 'Attend' 모델 생성
