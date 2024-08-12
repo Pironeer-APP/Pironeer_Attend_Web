@@ -4,29 +4,6 @@ const Session = require('../models/session');
 const Attend = require('../models/attend');
 const AttendanceTokenCache = require('../cache/token');
 
-const getOrCreateDeposit = async (userId) => {
-  let deposit = await Deposit.findOne({ user: userId });
-  if (!deposit) {
-      // User 정보 가져오기
-      const user = await User.findById(userId);
-      if (!user) {
-          throw new Error('유저를 찾을 수 없습니다');
-      }
-
-      // 새로운 Deposit 객체 생성
-      deposit = new Deposit({ 
-          user: userId, 
-          userName: user.username,  // User 정보에서 userName 가져오기
-          deposit: 80000, // 초기 보증금 금액 설정
-          assignmentList: [], 
-          defendList: [],
-          deductionList: [],
-          modifiedTime: new Date()
-      });
-  }
-  return deposit;
-};
-
 // 보증금 방어권 삭제 (가장 마지막 보증금 방어권 삭제)
 exports.dependDelete = async (req, res) => {
   try {
