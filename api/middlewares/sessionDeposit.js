@@ -16,33 +16,53 @@ const sessionDepositMiddleware = async(req, res) => {
     const { session, attends } = req.sessionData;
     const sessionName = session.name;
 
-    //보증금이 차감된 사람들의 정보만 가져오기
-    const insufficientAttends = attends.filter(attend => attend.deduction !== 0);
-
-    //반복문 돌며 변경 사항 deposit객체에 적용
-    for(const attend of insufficientAttends){
+    for(const attend of attends){
       const deposit = await Deposit.getOrCreateDeposit(attend.user);
-
-      //deductionList가 없을 경우 생성(없어도 될듯)
-      if (!deposit.deductionList) {
-        deposit.deductionList = [];
-      }
-
-      //지각인지 결석인지 보증금 내역 추가해주기
-      const deductionDetail = {
-        deductionIdx : deposit.defendList.length,
-        deductionDate: new Date(),
-        deductionDetail: `${session.name} ${attend.deduction === 10000 ? '지각' : '결석'}`,
-        deductedAmount: attend.deduction
-      };
-
-      deposit.deductionList.push(deductionDetail);
-      //보증금 남은 금액 차감
-      deposit.updateDeposit(attend.deduction*(-1));
       await deposit.save();
     }
-  }
+
+    // //보증금이 차감된 사람들의 정보만 가져오기
+    // const insufficientAttends = attends.filter(attend => attend.deduction !== 0);
+
+    // const checkRepeated = await Deposit.getOrCreateDeposit(attends[0].user);
+
+    // // 중복 체크
+    // const isDuplicate = checkRepeated.deductionList.some(d => 
+    //   attends.some(attend =>
+    //     d.deductionDetail === `${session.name} ${attend.deduction === -10000 ? '지각' : '결석'}` && 
+    //     d.deductedAmount === attend.deduction
+    //   )
+    // );
+
+    // if (isDuplicate) {
+    //   return res.status(200).send(req.sessionData); // 중복이 있으면 더 이상 처리하지 않고 응답
+    // }
+
+    // //반복문 돌며 변경 사항 deposit객체에 적용
+    // for(const attend of insufficientAttends){
+    //   const deposit = await Deposit.getOrCreateDeposit(attend.user);
+
+    //   //deductionList가 없을 경우 생성(없어도 될듯)
+    //   if (!deposit.deductionList) {
+    //     deposit.deductionList = [];
+    //   }
+
+    //   //지각인지 결석인지 보증금 내역 추가해주기
+    //   const deductionDetail = {
+    //     deductionIdx : deposit.defendList.length,
+    //     deductionDate: session.date,
+    //     deductionDetail: `${session.name} ${attend.deduction === -10000 ? '지각' : '결석'}`,
+    //     deductedAmount: attend.deduction
+    //   };
+
+    //   deposit.deductionList.push(deductionDetail);
+    //   //보증금 남은 금액 차감
+    //   deposit.updateDeposit(attend.deduction);
+    // await deposit.save();
+      
+  //   }
+  // }
   res.status(200).send(req.sessionData);
-};
+}};
 
 module.exports = sessionDepositMiddleware;
