@@ -47,7 +47,7 @@ const attendSchema = new mongoose.Schema({
     // 출석 차감 금액
     deduction:{
       type: Number,
-      enum: [0, 10000, 20000], 
+      enum: [0, -10000, -20000], 
       default: 0
     }, 
 });

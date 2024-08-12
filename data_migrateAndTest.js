@@ -408,7 +408,7 @@ const spreadUserDeposit = async () => {
                 
                 // 비교 문
                 let noCheck = attend.attendList.filter(attend => !attend.status).length;
-                money = noCheck > 1 ? 20000 : noCheck === 1 ? 10000 : 0;
+                money = noCheck > 1 ? -20000 : noCheck === 1 ? -10000 : 0;
                 totalMoney += money;
 
                 console.log(money);
@@ -539,7 +539,6 @@ const updateSpreadsheet = async (firstCol, cols) => {
 
 // 출석체크를 순회하며 차감 금액을 계산 하여 저장하구 
 // 총 차감 금액으로 기수를 구분하여 유저 저장
-
 const dataMigrateUserBatchAttendDeduction = async () => {
     try {
         console.time('Execution Time'); // 타이머 시작
@@ -581,7 +580,7 @@ const dataMigrateUserBatchAttendDeduction = async () => {
             for (let attend of attends) {
                 let money = 0;
                 let noCheck = attend.attendList.filter(attend => !attend.status).length;
-                money = noCheck > 1 ? 20000 : noCheck === 1 ? 10000 : 0;
+                money = noCheck > 1 ? -20000 : noCheck === 1 ? -10000 : 0;
                 totalMoney += money;
 
                 // 출석 차감 금액 저장
@@ -596,7 +595,7 @@ const dataMigrateUserBatchAttendDeduction = async () => {
             console.log("totalMoney : ", totalMoney);
 
             // 유저 배치 설정
-            const userBatch = totalMoney >= 300000 ? -1 : 21;
+            const userBatch = totalMoney < -300000 ? -1 : 21;
             userUpdates.push({
                 updateOne: {
                     filter: { _id: user._id },
@@ -620,6 +619,7 @@ const dataMigrateUserBatchAttendDeduction = async () => {
     } finally {
         mongoose.connection.close();
         console.timeEnd('Execution Time'); // 타이머 종료 및 결과 출력
+        console.log('Query Statistics:', queryStats);
     }
 };
 
@@ -630,6 +630,6 @@ const dataMigrateUserBatchAttendDeduction = async () => {
 
 //TESTuserDeposit1();
 
-// dataMigrateUserBatchAttendDeduction();
+//dataMigrateUserBatchAttendDeduction();
 
 spreadUserDeposit();

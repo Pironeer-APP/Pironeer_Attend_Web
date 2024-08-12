@@ -318,3 +318,47 @@ const authenticateToken = async (req, res, next) => {
 
 module.exports = authenticateToken;
 ```
+
+### 디버깅
+데이터 베이스 디버깅
+```javascript
+// 쿼리 통계를 저장할 객체
+const queryStats = {
+  totalQueries: 0,
+  readQueries: 0,
+  writeQueries: 0,
+  queries: [],
+};
+
+// 읽기 메소드와 쓰기 메소드 리스트
+const readMethods = ['find', 'findOne', 'findById', 'countDocuments', 'aggregate'];
+const writeMethods = ['insertOne', 'insertMany', 'updateOne', 'updateMany', 'deleteOne', 'deleteMany', 'findOneAndUpdate', 'findOneAndDelete'];
+
+// 주석 해제시 퀴리 로그 남고 읽기 쓰기 분석해 통계 저장
+// 디버그 콜백 함수 설정
+mongoose.set('debug', function (collectionName, method, query, doc, options) {
+  queryStats.totalQueries += 1; // 전체 쿼리 수 증가
+
+  // 쿼리 종류에 따라 읽기/쓰기 통계 증가
+  if (readMethods.includes(method)) {
+    queryStats.readQueries += 1;
+  } else if (writeMethods.includes(method)) {
+    queryStats.writeQueries += 1;
+  }
+
+  // 쿼리 세부 정보 기록
+  queryStats.queries.push({
+    collection: collectionName,
+    method: method,
+    query: query,
+    doc: doc,
+    options: options,
+  });
+
+  // 쿼리 정보 출력
+  console.log(`Collection: ${collectionName}, Method: ${method}, Query:`, query, 'Doc:', doc, 'Options:', options);
+});
+```
+데이터 베이스 퀴리를 두가지로 분류(읽기, 쓰기)
+퀴리에 대한 통계를 제공
+테스트 시에만 사용
