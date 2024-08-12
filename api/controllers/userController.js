@@ -225,7 +225,7 @@ exports.updateUserAttendance =  async (req, res) => {
       // DB에 업데이트
       await attendance.save();
 
-      res.status(200).send('성공적으로 데이터를 옮겼습니다.');
+      res.status(200).send({ message: '성공적으로 데이터를 옮겼습니다.' });
   } catch (error) {
     console.error('데이터를 옮기는데 실패했습니다', error);
     res.status(500).send('데이터를 옮기는데 실패했습니다');
