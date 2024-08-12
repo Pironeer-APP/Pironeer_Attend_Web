@@ -28,7 +28,7 @@ const gradeSchema = new mongoose.Schema({
     },
     deduction:{
         type: Number,
-        enum:[0, 10000, 20000],
+        enum:[0, -10000, -20000],
         default: 0
     }
 });
