@@ -84,7 +84,7 @@ exports.getAllSessions = async (req, res) => {
 };
 
 // 하나의 세션 조회 + 해당 세션의 모든 출석도 조회
-exports.getSessionById = async (req, res, next) => {
+exports.getSessionById = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -94,9 +94,7 @@ exports.getSessionById = async (req, res, next) => {
     }
 
     const attends = await Attend.find({ session: session._id });
-    req.sessionData = { session, attends, dbState : 1 }; // req 객체에 sessionData 속성 추가
-    next();
-    // res.status(200).send({ session, attends });
+    res.status(200).send({ session, attends });
   } catch (error) {
     res.status(500).send({ message: "세션을 가져오는 중 오류가 발생했습니다", error });
   }
