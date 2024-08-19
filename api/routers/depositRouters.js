@@ -29,6 +29,9 @@ router.post('/:userId/defend/add', authenticateToken,adminMiddleware, depositCon
 // 과제 정보 수정(과제 리스트 수정)
 //router.post('/:userId/assignment/update', authenticateToken,adminMiddleware, depositController.AssignmentUpdate);
 
+
+// 보증금 재계산 (모든 유저)
+router.post('/recalculate', authenticateToken, adminMiddleware, depositController.recalculateDeposits);
 module.exports = router;
 
 /**
@@ -40,6 +43,35 @@ module.exports = router;
 
 /**
  * @swagger
+ * /api/deposit/recalculate:
+ *   post:
+ *     summary: Recalculate deposits for all users
+ *     tags: [Deposits]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Deposits successfully recalculated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "모든 유저의 보증금이 성공적으로 재계산되었습니다."
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "보증금을 재계산하는 도중 오류가 발생했습니다."
+ *                 error:
+ *                   type: object
  * /api/deposit/{userId}:
  *   get:
  *     summary: Get deposit information

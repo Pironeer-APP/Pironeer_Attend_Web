@@ -17,8 +17,7 @@ const depositSchema = new mongoose.Schema({
     //현재 보증금 잔액
     deposit:{
         type: Number,
-        default: 80000,
-        min: 0
+        default: 80000
     },
     //보증금 방어권 리스트
     defendList:[{
@@ -64,11 +63,7 @@ const depositSchema = new mongoose.Schema({
 
 // 보증금 업데이트 메서드
 depositSchema.methods.updateDeposit = function (amount) {
-    if (amount > 0) {
-        this.deposit = Math.min(80000, this.deposit + amount);
-    } else {
-        this.deposit = Math.max(0, this.deposit + amount);
-    }
+    this.deposit = Math.min(80000, this.deposit + amount);
 };
 
 depositSchema.pre('save', function(next){

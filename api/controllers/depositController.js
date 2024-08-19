@@ -4,6 +4,47 @@ const Session = require('../models/session');
 const Attend = require('../models/attend');
 const AttendanceTokenCache = require('../cache/token');
 
+exports.recalculateDeposits = async(req, res) =>{
+  try
+  {
+    // 모든 Deposit 객체를 가져옵니다.
+    const deposits = await Deposit.find({});
+
+    for (let deposit of deposits)
+    {
+      // deposit 필드를 80000으로 초기화합니다.
+      deposit.deposit = 80000;
+
+      // deductionList를 반복문으로 돌면서 deposit 필드를 업데이트합니다.
+      for (let deduction of deposit.deductionList)
+      {
+        deposit.updateDeposit(deduction.deductedAmount);
+      }
+
+      // 변경된 내용을 저장합니다.
+      await deposit.save();
+    }
+    console.log('모든 deposit 객체가 성공적으로 초기화되었습니다.');
+
+    // 성공 응답 반환
+    res.status(200).json({
+      message : '모든 deposit 객체가 성공적으로 초기화되었습니다.',
+      deposits : deposits
+    });
+  }
+  catch (error)
+  {
+    console.error('Deposit 초기화 중 오류가 발생했습니다:', error);
+
+    // 오류 응답 반환
+    res.status(500).json({
+      message : 'Deposit 초기화 중 오류가 발생했습니다.',
+      error : error.message
+    });
+  }
+};
+
+
 const getOrCreateDeposit = async (userId) => {
   let deposit = await Deposit.findOne({ user: userId });
   if (!deposit) {
