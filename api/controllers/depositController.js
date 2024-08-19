@@ -214,7 +214,7 @@ exports.useDefend = async(req, res)=>{
 
         await deposit.save();
 
-        res.status(201).send({message: "보증금 방어권이 정상적으로 사용되었습니다", user, deposit: deposit.deposit, deductionList: deposit.deductionList});
+        res.status(201).send({message: "보증금 방어권이 정상적으로 사용되었습니다", user, defendList:deposit.defendList ,deposit: deposit.deposit, deductionList: deposit.deductionList});
     }catch(error){
         res.status(500).send({message : "보증금 방어권을 사용하는 도중 오류가 발생했습니다.", error});
     }

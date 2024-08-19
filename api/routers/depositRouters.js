@@ -204,4 +204,116 @@ module.exports = router;
  *                 message:
  *                   type: string
  *                   description: Success message
+ 
+ * /api/deposit/{userId}/defend/delete:
+ *   post:
+ *     summary: 보증금 방어권 삭제
+ *     tags: [Deposits]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The user ID
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Defend entry successfully deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "보증금 방어권이 성공적으로 삭제되었습니다."
+ *       400:
+ *         description: Invalid request or resource not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "유효하지 않은 요청입니다."
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "보증금 방어권 삭제 중 오류가 발생했습니다."
+ *                 error:
+ *                   type: object
+ * 
+ * /api/deposit/{userId}/defend/add:
+ *   post:
+ *     summary: 보증금 방어권 추가
+ *     tags: [Deposits]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The user ID
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       description: 방어권 추가를 위한 정보
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               defendIdx:
+ *                 type: integer
+ *                 example: 1
+ *               status:
+ *                 type: boolean
+ *                 example: false
+ *               usedDate:
+ *                 type: string
+ *                 format: date
+ *                 example: "2024-06-25"
+ *     responses:
+ *       200:
+ *         description: Defend entry successfully added
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "보증금 방어권이 성공적으로 추가되었습니다."
+ *       400:
+ *         description: Invalid request or resource not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "유효하지 않은 요청입니다."
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "보증금 방어권 추가 중 오류가 발생했습니다."
+ *                 error:
+ *                   type: object
  */
