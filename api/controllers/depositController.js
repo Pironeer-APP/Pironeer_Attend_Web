@@ -131,8 +131,9 @@ exports.checkDeposit = async(req, res)=>{
 
         const deductionList = deposit.deductionList;
         const defendList = deposit.defendList;
+        const defendCount = deposit.defendList.filter(defend => defend.status === false).length;
 
-        res.status(201).send({user, deposit: deposit.deposit, deductionList, defendCount : defendList.length});
+        res.status(201).send({user, deposit: deposit.deposit, deductionList, defendCount });
     } catch(error){
         res.status(500).send({message: "보증금 정보를 가져오는 도중 오류가 발생했습니다.", error});
     }
